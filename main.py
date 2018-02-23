@@ -9,11 +9,6 @@ def readCSV(filename = 'data.csv', keep_this=None):
     with open(filename) as f:
         # reader = csv.reader(f)
         reader = csv.DictReader(f)
-        # headers = reader.next()
-        # print(headers)
-        # for row in reader:
-        #     print (row)
-
 
         for row in reader:
             # print (row['time'])
@@ -46,6 +41,12 @@ def readCSV(filename = 'data.csv', keep_this=None):
                         d[key] = [value]
         return l
 
+def calcDistance(k,array,center):
+    dist = 0
+    for j in range(0,len(array[k])):
+        dist += math.pow(array[k][j] - center[j],2)
+    return math.sqrt(dist)
+
 def multidistance(array,n_clusters,cluster_array,center_array):
     max_dist = {}
     for i in range(0,n_clusters):
@@ -54,16 +55,8 @@ def multidistance(array,n_clusters,cluster_array,center_array):
     # print(center_array)
 
     for i in range(0,len(array)):
-        center = center_array[cluster_array[i]]
-        # print(center)
-        dist = 0
-        for j in range(0,len(array[i])):
-            dist += math.pow(array[i][j] - center[j],2)
-            # print(array[i][j],center[j])
-        dist = math.sqrt(dist)
+        dist = calcDistance(i,array,center_array[cluster_array[i]])
         max_dist[cluster_array[i]] =  max(dist,max_dist[cluster_array[i]])
-
-        # print(array[i],cluster_array[i])
 
     return (max_dist)
 
@@ -80,11 +73,7 @@ def listToArrays(input_list):
         Y = np.append(Y,[[int(item['tempCPU'])]], axis=0)
     return X,Y
 
-def calcDistance(k,array,center):
-    dist = 0
-    for j in range(0,len(array[k])):
-        dist += math.pow(array[k][j] - center[j],2)
-    return math.sqrt(dist)
+
 
 def gaussianFunction(array, center, sigma):
     gaussian_row = np.array([])
@@ -113,6 +102,12 @@ def gaussianMatrix(array,center_array,sigma_array):
     # print('array',gaussian_array.transpose().shape)
     return gaussian_array.transpose()
 
+def rootMeanError(error_array):
+    souma = 0
+    for i in error_array:
+        souma += i**2
+
+    return math.sqrt(souma/len(error_array))
 
 train, test = (readCSV(keep_this=['CPU','MemoryUsed','tempCPU']))
 # print(d)
@@ -172,3 +167,13 @@ temp = inversed.dot(G.transpose())
 W = temp.dot(trainY)
 
 print("W=",W)
+
+Y = G.dot(W)
+
+print("Y=",Y)
+
+error = np.subtract(trainY,Y)
+
+print("error=", error)
+
+print("rootMeanError=", rootMeanError(error))
