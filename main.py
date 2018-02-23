@@ -1,7 +1,10 @@
-import csv
+import csv, math
+
 def readCSV(filename = 'data.csv', keep_this=None):
     d = {}
-    l = []
+    train = []
+    test = []
+    l=[]
     i = 0
     with open(filename) as f:
         # reader = csv.reader(f)
@@ -10,11 +13,17 @@ def readCSV(filename = 'data.csv', keep_this=None):
         # print(headers)
         # for row in reader:
         #     print (row)
-        if i > 100:
-            return l
+
+
         for row in reader:
             # print (row['time'])
             # d[row['time']] = {}
+            if i > 700:
+                return train, l
+            if i == 500:
+                train = list(l)
+                l=[]
+            i+=1
             l.append(row)
             for key, value in row.items():
                 try:
@@ -49,46 +58,92 @@ def multidistance(array,n_clusters,cluster_array,center_array):
         # print(center)
         dist = 0
         for j in range(0,len(array[i])):
-            dist += array[i][j] - center[j]
+            dist += math.pow(array[i][j] - center[j],2)
             # print(array[i][j],center[j])
+        dist = math.sqrt(dist)
         max_dist[cluster_array[i]] =  max(dist,max_dist[cluster_array[i]])
 
         # print(array[i],cluster_array[i])
 
-    print(max_dist)
+    return (max_dist)
 
-d = (readCSV(keep_this=['CPU','MemoryUsed','tempCPU']))
+def listToArrays(input_list):
+    item = input_list.pop(0)
+    X = np.array([[int(item['CPU']),int(item['MemoryUsed'])]])
+    Y = np.array([[int(item['tempCPU'])]])
+    for item in input_list:
+        # print(X,[item['CPU'],item['MemoryUsed']])
+        if not item['CPU']:
+            break
+
+        X = np.append(X,[[int(item['CPU']),int(item['MemoryUsed'])]], axis=0)
+        Y = np.append(Y,[[int(item['tempCPU'])]], axis=0)
+    return X,Y
+
+def calcDistance(k,array,center):
+    dist = 0
+    for j in range(0,len(array[k])):
+        dist += math.pow(array[k][j] - center[j],2)
+    return math.sqrt(dist)
+
+def gaussianFunction(array, center, sigma):
+    gaussian_row = np.array([])
+    for k in range(len(array)):
+        dist = calcDistance(k, array, center)
+
+        fraction = math.pow(dist / sigma,2)
+
+        res = math.exp(-fraction)
+        gaussian_row = np.append(gaussian_row,[res])
+
+    return gaussian_row
+
+def gaussianMatrix(array,center_array,sigma_array):
+    # gaussian_array = np.array([[]])
+    # print(center_array)
+    for i in range(len(center_array)):
+        g = gaussianFunction(array, center_array[i], sigma_array[i])
+        # print('g',g.shape)
+        try:
+            gaussian_array = np.vstack([gaussian_array, g])
+        except UnboundLocalError:
+            gaussian_array = np.array(g)
+
+
+    # print('array',gaussian_array.transpose().shape)
+    return gaussian_array.transpose()
+
+
+train, test = (readCSV(keep_this=['CPU','MemoryUsed','tempCPU']))
 # print(d)
 
 import matplotlib.pyplot as plt
 import seaborn as sns; sns.set()  # for plot styling
 import numpy as np
 
-item = d.pop(0)
-X = np.array([[int(item['CPU']),int(item['MemoryUsed'])]])
+fig = plt.figure()
+ax = fig.add_subplot(111)
 
-for item in d:
-    # print(X,[item['CPU'],item['MemoryUsed']])
-    if not item['CPU']:
-        break
+trainX, trainY = listToArrays(train)
+testX, testY = listToArrays(test)
 
-    X = np.append(X,[[int(item['CPU']),int(item['MemoryUsed'])]], axis=0)
-
-n_clusters = 2
+n_clusters = 3
 # print(X)
-plt.scatter(X[:,0], X[:, 1])
+
 # plt.show()
 
 from sklearn.cluster import KMeans
 kmeans = KMeans(n_clusters=n_clusters)
-kmeans.fit(X)
-y_kmeans = kmeans.predict(X)
+kmeans.fit(trainX)
+y_kmeans = kmeans.predict(trainX)
 centers = kmeans.cluster_centers_
 
-multidistance(X,n_clusters,y_kmeans,centers)
-
-plt.scatter(X[:,0], X[:, 1], c=y_kmeans, cmap='viridis')
 
 
-plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
-# plt.show()
+dmaxes = multidistance(trainX,n_clusters,y_kmeans,centers)
+
+sigma_array = dmaxes
+for i in sigma_array:
+    i = 2/3*(i)
+
+print(gaussianMatrix(trainX,centers,sigma_array))
