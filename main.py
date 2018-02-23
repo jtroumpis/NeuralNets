@@ -142,13 +142,11 @@ import numpy as np
 from sklearn.cluster import KMeans
 from numpy.linalg import inv
 
-n_clusters = 3
-
 lamda = 1
 
-x, y = readCSV()
-
+x, y = readCSV('data_big.csv')
+# print(x)
 x = np.asarray(x)
 y = np.asarray(y)
-for c in range(2,10):
+for c in range(2,15):
     doTheNet(lamda,c,x,y)
