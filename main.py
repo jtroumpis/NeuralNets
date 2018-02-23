@@ -1,25 +1,18 @@
 import csv, math
 
+def isInput(s):
+    return s[0]=='x'
+
 def readCSV(filename = 'data.csv', keep_this=None):
-    d = {}
-    train = []
-    test = []
-    l=[]
-    i = 0
+    x = []
+    y = []
+
     with open(filename) as f:
-        # reader = csv.reader(f)
         reader = csv.DictReader(f)
 
         for row in reader:
-            # print (row['time'])
-            # d[row['time']] = {}
-            if i > 700:
-                return train, l
-            if i == 500:
-                train = list(l)
-                l=[]
-            i+=1
-            l.append(row)
+            x_sub_list = []
+            y_sub_list = []
             for key, value in row.items():
                 try:
                     value = int(value)
@@ -28,18 +21,17 @@ def readCSV(filename = 'data.csv', keep_this=None):
                 except TypeError:
                     break
 
-                if keep_this:
-                    if key in keep_this:
-                        try:
-                            d[key].append(value)
-                        except KeyError:
-                            d[key] = [value]
+                if key=='time' or 'tempFPGA'in key or 'ytempCPU' in key:
+                    continue
+
+                if isInput(key):
+                    x_sub_list.append(value)
                 else:
-                    try:
-                        d[key].append(value)
-                    except KeyError:
-                        d[key] = [value]
-        return l
+                    y_sub_list.append(value)
+
+            x.append(x_sub_list)
+            y.append(y_sub_list)
+        return x, y
 
 # Calculates the distance
 def calcDistance(k,array,center):
@@ -60,24 +52,15 @@ def multidistance(array,n_clusters,cluster_array,center_array):
 
     return (max_dist)
 
-
-def listToArrays(input_list):
-    item = input_list.pop(0)
-    X = np.array([[int(item['CPU']),int(item['MemoryUsed'])]])
-    Y = np.array([[int(item['tempCPU'])]])
-    for item in input_list:
-        if not item['CPU']:
-            break
-        X = np.append(X,[[int(item['CPU']),int(item['MemoryUsed'])]], axis=0)
-        Y = np.append(Y,[[int(item['tempCPU'])]], axis=0)
-    return X,Y
-
 # Calculates the gaussian function for a vector
 def gaussianFunction(array, center, sigma):
     gaussian_row = np.array([])
     for k in range(len(array)):
         dist = calcDistance(k, array, center)
-        fraction = math.pow(dist / sigma,2)
+        try:
+            fraction = math.pow(dist / sigma,2)
+        except ZeroDivisionError:
+            fraction = 0
         res = math.exp(-fraction)
         gaussian_row = np.append(gaussian_row,[res])
 
@@ -109,6 +92,50 @@ def kMeans(trainX,n_clusters):
 
     return y_kmeans, centers
 
+def calculateWeights(lamda,n_clusters,G,y,centers,sigma_array):
+    gamma = lamda * np.identity(n_clusters)
+
+    gtg = G.transpose().dot(G)
+    gammatgamma = gamma.transpose().dot(gamma)
+
+    inversed = inv(np.add(gtg, gammatgamma))
+
+    temp = inversed.dot(G.transpose())
+    W = temp.dot(y)
+
+    # print("W=",W)
+
+    return W
+
+def doTheNet(lamda,n_clusters,x,y):
+    y_kmeans, centers = kMeans(x, n_clusters)
+
+    dmaxes = multidistance(x,n_clusters,y_kmeans,centers)
+
+    # print(dmaxes)
+    sigma_array = []
+    # print(sigma_array)
+    for i in range(len(dmaxes)):
+        try:
+            sigma_array.append(2/3*dmaxes[i])
+        except ZeroDivisionError:
+            pass
+
+    G = gaussianMatrix(x,centers,sigma_array)
+    print(G.shape)
+    W = calculateWeights(lamda,n_clusters,G,y,centers, sigma_array)
+    Y = G.dot(W)
+
+    # print("Y=",Y)
+
+    error = np.subtract(y,Y)
+
+    # print("error=", error)
+
+    print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
+
+    return rootMeanError(error)
+
 import matplotlib.pyplot as plt
 import seaborn as sns; sns.set()  # for plot styling
 import numpy as np
@@ -117,53 +144,11 @@ from numpy.linalg import inv
 
 n_clusters = 3
 
-train, test = (readCSV(keep_this=['CPU','MemoryUsed','tempCPU']))
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-
-trainX, trainY = listToArrays(train)
-testX, testY = listToArrays(test)
-
-y_kmeans, centers = kMeans(trainX, n_clusters)
-
-dmaxes = multidistance(trainX,n_clusters,y_kmeans,centers)
-
-sigma_array = dmaxes
-for i in sigma_array:
-    i = 2/3*(i)
-
-G = gaussianMatrix(trainX,centers,sigma_array)
-
-print("G dimensions: ",G.shape)
-
 lamda = 1
 
-gamma = lamda * np.identity(n_clusters)
+x, y = readCSV()
 
-to_inverse = G.transpose().dot(G)
-temp = gamma.dot(gamma.transpose())
-
-to_inverse = np.add(to_inverse, temp)
-
-# print('G=', G)
-
-inversed = inv(to_inverse)
-
-# print("Inversed = ",inversed)
-# print("Inversed*to_inverse = ",inversed.dot(to_inverse))
-
-temp = inversed.dot(G.transpose())
-W = temp.dot(trainY)
-
-# print("W=",W)
-
-Y = G.dot(W)
-
-# print("Y=",Y)
-
-error = np.subtract(trainY,Y)
-
-print("error=", error)
-
-print("rootMeanError=", rootMeanError(error))
+x = np.asarray(x)
+y = np.asarray(y)
+for c in range(2,10):
+    doTheNet(lamda,c,x,y)
