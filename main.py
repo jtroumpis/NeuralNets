@@ -146,4 +146,29 @@ sigma_array = dmaxes
 for i in sigma_array:
     i = 2/3*(i)
 
-print(gaussianMatrix(trainX,centers,sigma_array))
+G = (gaussianMatrix(trainX,centers,sigma_array))
+
+print("G dimensions: ",G.shape)
+
+lamda = 1
+
+gamma = lamda * np.identity(n_clusters)
+
+to_inverse = G.transpose().dot(G)
+temp = gamma.dot(gamma.transpose())
+
+to_inverse = np.add(to_inverse, temp)
+
+print('G=', G)
+
+from numpy.linalg import inv
+
+inversed = inv(to_inverse)
+
+print("Inversed = ",inversed)
+print("Inversed*to_inverse = ",inversed.dot(to_inverse))
+
+temp = inversed.dot(G.transpose())
+W = temp.dot(trainY)
+
+print("W=",W)
