@@ -34,10 +34,10 @@ def readCSV(filename = 'data.csv', keep_this=None):
         return x, y
 
 # Calculates the distance
-def calcDistance(k,array,center):
+def calcDistance(x,center):
     dist = 0
-    for j in range(0,len(array[k])):
-        dist += math.pow(array[k][j] - center[j],2)
+    for j in range(0,len(x)):
+        dist += math.pow(x[j] - center[j],2)
     return math.sqrt(dist)
 
 # Calculate the maximum distance of each cluster (dmax)
@@ -47,7 +47,7 @@ def multidistance(array,n_clusters,cluster_array,center_array):
         max_dist[i] = 0
 
     for i in range(0,len(array)):
-        dist = calcDistance(i,array,center_array[cluster_array[i]])
+        dist = calcDistance(array[i],center_array[cluster_array[i]])
         max_dist[cluster_array[i]] =  max(dist,max_dist[cluster_array[i]])
 
     return (max_dist)
@@ -56,7 +56,7 @@ def multidistance(array,n_clusters,cluster_array,center_array):
 def gaussianFunction(array, center, sigma):
     gaussian_row = np.array([])
     for k in range(len(array)):
-        dist = calcDistance(k, array, center)
+        dist = calcDistance(array[k], center)
         try:
             fraction = math.pow(dist / sigma,2)
         except ZeroDivisionError:
@@ -107,12 +107,22 @@ def calculateWeights(lamda,n_clusters,G,y,centers,sigma_array):
 
     return W
 
-def doTheNet(lamda,n_clusters,x,y):
-    y_kmeans, centers = kMeans(x, n_clusters)
+def calculateSigmaArray(centers):
 
-    dmaxes = multidistance(x,n_clusters,y_kmeans,centers)
+    dist_array = np.array([])
+    for c in centers:
+        min_dist = math.inf
+        for i in centers:
+            # print(i,c)
+            if np.array_equal(i,c): continue
+            dist = calcDistance(c,i)
+            # print(dist)
+            if dist < min_dist:
+                min_dist = dist
+        dist_array = np.append(dist_array,[min_dist])
+    return dist_array
 
-    # print(dmaxes)
+def calculateSigma_withDmax(dmaxes):
     sigma_array = []
     # print(sigma_array)
     for i in range(len(dmaxes)):
@@ -120,6 +130,18 @@ def doTheNet(lamda,n_clusters,x,y):
             sigma_array.append(2/3*dmaxes[i])
         except ZeroDivisionError:
             pass
+
+    return (sigma_array)
+
+
+def doTheNet(lamda,n_clusters,x,y):
+    y_kmeans, centers = kMeans(x, n_clusters)
+
+    # dmaxes = multidistance(x,n_clusters,y_kmeans,centers)
+    # sigma_array = calculateSigma_withDmax(dmaxes)
+    # print(sigma_array)
+    sigma_array = (calculateSigmaArray(centers))
+    # print(sigma_array)
 
     G = gaussianMatrix(x,centers,sigma_array)
     print(G.shape)
@@ -144,9 +166,11 @@ from numpy.linalg import inv
 
 lamda = 1
 
-x, y = readCSV('data_big.csv')
+x, y = readCSV('data.csv')
 # print(x)
 x = np.asarray(x)
 y = np.asarray(y)
-for c in range(2,15):
-    doTheNet(lamda,c,x,y)
+for lamda in [0.1,1,10,100]:
+    print("LAMDA=",lamda)
+    for c in range(2,30):
+        doTheNet(lamda,c,x,y)
