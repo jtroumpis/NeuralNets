@@ -1,7 +1,7 @@
 import csv, math
 
 def isInput(s):
-    return 'output' in s
+    return not 'output' in s
 
 def addToNetDict(dictionary,key,value):
     try:
@@ -56,17 +56,19 @@ def readCSV(filename = 'data.csv', keep_this=None):
                     total_sum_in += addToNetDict(net_in,key,value)
                 elif 'net_out' in key:
                     total_sum_out += addToNetDict(net_out,key,value)
-                elif key=='time' or 'tempFPGA' in key or 'ytempCPU' in key:
+                # elif key=='time' or 'tempFPGA' in key or 'ytempCPU'  in key:
+                elif key=='time'  in key:
                     continue
                 else:
                     if isInput(key):
+                        # print(key)
                         x_sub_list.append(value)
                     else:
                         y_sub_list.append(value)
 
             x.append(x_sub_list)
             y.append(y_sub_list)
-
+        # print(x)
         net_in = calculateArithmeticProgression(net_in,total_sum_in)
         net_out = calculateArithmeticProgression(net_out,total_sum_out)
 
@@ -97,23 +99,21 @@ def multidistance(array,n_clusters,cluster_array,center_array):
     return (max_dist)
 
 # Calculates the gaussian function for a vector
-def gaussianFunction(array, center, sigma):
-    gaussian_row = np.array([])
-    for k in range(len(array)):
-        dist = calcDistance(array[k], center)
-        try:
-            fraction = math.pow(dist / sigma,2)
-        except ZeroDivisionError:
-            fraction = 0
-        res = math.exp(-fraction)
-        gaussian_row = np.append(gaussian_row,[res])
+def gaussianFunction(x, center, sigma):
 
-    return gaussian_row
+    dist = calcDistance(x, center)
+    try:
+        fraction = math.pow(dist / sigma,2)
+    except ZeroDivisionError:
+        fraction = 0
+    res = math.exp(-fraction)
+    return res
+
 
 # Makes the gaussian matrix
-def gaussianMatrix(array,center_array,sigma_array):
+def gaussianMatrix(x,center_array,sigma_array):
     for i in range(len(center_array)):
-        g = gaussianFunction(array, center_array[i], sigma_array[i])
+        g = gaussianFunction(x, center_array[i], sigma_array[i])
         try:
             gaussian_array = np.vstack([gaussian_array, g])
         except UnboundLocalError:
@@ -136,8 +136,8 @@ def kMeans(trainX,n_clusters):
 
     return y_kmeans, centers
 
-def calculateWeights(lamda,n_clusters,G,y,centers,sigma_array):
-    gamma = lamda * np.identity(n_clusters)
+def calculateWeights(lamda,n_clusters,G,y,centers,sigma_array,p):
+    gamma = lamda * np.identity(n_clusters*(p+1))
 
     gtg = G.transpose().dot(G)
     gammatgamma = gamma.transpose().dot(gamma)
@@ -177,29 +177,39 @@ def calculateSigma_withDmax(dmaxes):
 
     return (sigma_array)
 
+def calculateSmallL(x, center, sigma):
+    g = gaussianFunction(x, center, sigma)
+    lamda = [g]
+    for p in range(len(x)):
+        lamda.append(g * x[p])
+    # print(len(lamda))
+    return lamda
+
+def calculateLAMDA(x,centers,sigmas,y_kmeans):
+    bigL = []
+    for n in range(len(x)):
+        L=[]
+        for c in range(len(centers)):
+            L.extend(calculateSmallL(x[n],centers[c],sigmas[c]))
+        bigL.append(L)
+    # print(len(L))
+    return bigL
+
 def doTheNet(lamda,n_clusters,x,y):
     y_kmeans, centers = kMeans(x, n_clusters)
 
-    # dmaxes = multidistance(x,n_clusters,y_kmeans,centers)
-    # sigma_array = calculateSigma_withDmax(dmaxes)
-    # print(sigma_array)
     sigma_array = (calculateSigmaArray(centers))
-    # print(sigma_array)
 
-    G = gaussianMatrix(x,centers,sigma_array)
-    print(G.shape)
-    W = calculateWeights(lamda,n_clusters,G,y,centers, sigma_array)
-    Y = G.dot(W)
+    L = calculateLAMDA(x,centers,sigma_array, y_kmeans)
+    L = np.array(L)
+    print(L.shape)
 
-    # print("Y=",Y)
-
+    W = calculateWeights(lamda,n_clusters,L,y,centers, sigma_array, len(x[0]))
+    Y = L.dot(W)
     error = np.subtract(y,Y)
-
-    # print("error=", error)
-
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
-
     return rootMeanError(error)
+
 
 import matplotlib.pyplot as plt
 import seaborn as sns; sns.set()  # for plot styling
@@ -210,12 +220,10 @@ from numpy.linalg import inv
 lamda = 1
 
 x, y = readCSV('data.csv')
-# print(x)
 x = np.asarray(x)
 y = np.asarray(y)
 
-# exit()
-
+# print(x.shape)
 # for lamda in [0.1,1,10,100]:
 #     print("LAMDA=",lamda)
 for c in range(2,30):
