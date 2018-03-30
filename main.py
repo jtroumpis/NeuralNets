@@ -1,7 +1,7 @@
 import csv, math
 
 def isInput(s):
-    return s[0]=='x'
+    return s[0]!='y'
 
 def readCSV(filename = 'data.csv', keep_this=None):
     x = []
@@ -133,7 +133,6 @@ def calculateSigma_withDmax(dmaxes):
 
     return (sigma_array)
 
-
 def doTheNet(lamda,n_clusters,x,y):
     y_kmeans, centers = kMeans(x, n_clusters)
 
@@ -167,7 +166,7 @@ from numpy.linalg import inv
 lamda = 1
 
 x, y = readCSV('data.csv')
-# print(x)
+print(x)
 x = np.asarray(x)
 y = np.asarray(y)
 for lamda in [0.1,1,10,100]:
