@@ -1,12 +1,43 @@
 import csv, math
 
 def isInput(s):
-    return s[0]!='y'
+    return 'output' in s
+
+def addToNetDict(dictionary,key,value):
+    try:
+        dictionary[key]['l'].append(value)
+        dictionary[key]['sum'] += value
+    except KeyError:
+        dictionary[key] = {'l': [value],'sum': value}
+
+    return value
+
+def calculateArithmeticProgression(net_dic,total):
+    for key, value in net_dic.items():
+        weight = value['sum'] / total
+        net_dic[key][weight] = weight
+        # print(weight)
+    net_list = []
+    while True:
+        try:
+            net_total = 0
+            for key in net_dic:
+                # print(net_dic[key]['l'].pop())
+                net_total += net_dic[key]['l'].pop() * weight
+                # total += weight * value
+            net_list.append(net_total)
+        except IndexError:
+            break
+    return net_list
+    # return net_dic
 
 def readCSV(filename = 'data.csv', keep_this=None):
     x = []
     y = []
-
+    net_in = {}
+    net_out = {}
+    total_sum_in = 0
+    total_sum_out = 0
     with open(filename) as f:
         reader = csv.DictReader(f)
 
@@ -21,16 +52,29 @@ def readCSV(filename = 'data.csv', keep_this=None):
                 except TypeError:
                     break
 
-                if key=='time' or 'tempFPGA'in key or 'ytempCPU' in key:
+                if 'net_in' in key:
+                    total_sum_in += addToNetDict(net_in,key,value)
+                elif 'net_out' in key:
+                    total_sum_out += addToNetDict(net_out,key,value)
+                elif key=='time' or 'tempFPGA' in key or 'ytempCPU' in key:
                     continue
-
-                if isInput(key):
-                    x_sub_list.append(value)
                 else:
-                    y_sub_list.append(value)
+                    if isInput(key):
+                        x_sub_list.append(value)
+                    else:
+                        y_sub_list.append(value)
 
             x.append(x_sub_list)
             y.append(y_sub_list)
+
+        net_in = calculateArithmeticProgression(net_in,total_sum_in)
+        net_out = calculateArithmeticProgression(net_out,total_sum_out)
+
+        # print(net_in)
+
+        for i in range(len(x)):
+            x[i].append(net_in[i])
+            x[i].append(net_out[i])
         return x, y
 
 # Calculates the distance
@@ -166,10 +210,13 @@ from numpy.linalg import inv
 lamda = 1
 
 x, y = readCSV('data.csv')
-print(x)
+# print(x)
 x = np.asarray(x)
 y = np.asarray(y)
-for lamda in [0.1,1,10,100]:
-    print("LAMDA=",lamda)
-    for c in range(2,30):
-        doTheNet(lamda,c,x,y)
+
+# exit()
+
+# for lamda in [0.1,1,10,100]:
+#     print("LAMDA=",lamda)
+for c in range(2,30):
+    doTheNet(lamda,c,x,y)
