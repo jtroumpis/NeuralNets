@@ -56,10 +56,12 @@ def readCSV(filename = 'data.csv', keep_this=None):
                     total_sum_in += addToNetDict(net_in,key,value)
                 elif 'net_out' in key:
                     total_sum_out += addToNetDict(net_out,key,value)
-                elif key=='time' or 'tempFPGA' in key or 'ytempCPU' in key:
+                # elif key=='time' or 'tempFPGA' in key or 'ytempCPU'  in key:
+                elif key=='time'  in key:
                     continue
                 else:
                     if isInput(key):
+                        # print(key)
                         x_sub_list.append(value)
                     else:
                         # print(key)
@@ -67,7 +69,7 @@ def readCSV(filename = 'data.csv', keep_this=None):
 
             x.append(x_sub_list)
             y.append(y_sub_list)
-
+        # print(x)
         net_in = calculateArithmeticProgression(net_in,total_sum_in)
         net_out = calculateArithmeticProgression(net_out,total_sum_out)
 
@@ -80,6 +82,7 @@ def readCSV(filename = 'data.csv', keep_this=None):
 
 # Calculates the distance
 def calcDistance(x,center):
+    # print(len(x))
     dist = 0
     for j in range(0,len(x)):
         dist += math.pow(x[j] - center[j],2)
@@ -99,27 +102,24 @@ def multidistance(array,n_clusters,cluster_array,center_array):
 
 # Calculates the gaussian function for a vector
 def gaussianFunction(x, center, sigma):
-    gaussian_row = np.array([])
-    for p in range(len(x)):
-        dist = calcDistance(x[p], center)
-        try:
-            fraction = math.pow(dist / sigma,2)
-        except ZeroDivisionError:
-            fraction = 0
-        res = math.exp(-fraction)
-        gaussian_row = np.append(gaussian_row,[res])
-
-    return gaussian_row
+    dist = calcDistance(x, center)
+    try:
+        fraction = math.pow(dist / sigma,2)
+    except ZeroDivisionError:
+        fraction = 0
+    res = math.exp(-fraction)
+    return res
 
 # Makes the gaussian matrix
 def gaussianMatrix(x,centers,sigma_array):
-    for i in range(len(centers)):
-        g = gaussianFunction(x, centers[i], sigma_array[i])
-        try:
-            gaussian_array = np.vstack([gaussian_array, g])
-        except UnboundLocalError:
-            gaussian_array = np.array(g)
-    return gaussian_array.transpose()
+    gaussian_array = []
+    for n in range(len(x)):
+        small_g = []
+        for i in range(len(centers)):
+            g = gaussianFunction(x[n], centers[i], sigma_array[i])
+            small_g.append(g)
+        gaussian_array.append(small_g)
+    return np.asarray(gaussian_array)
 
 # Calculate root mean error
 def rootMeanError(error_array):
@@ -136,6 +136,21 @@ def kMeans(trainX,n_clusters):
     centers = kmeans.cluster_centers_
 
     return y_kmeans, centers
+
+def calculateWeightsPolynomial(lamda,n_clusters,G,y,centers,sigma_array,p):
+    gamma = lamda * np.identity(n_clusters*(p+1))
+
+    gtg = G.transpose().dot(G)
+    gammatgamma = gamma.transpose().dot(gamma)
+
+    inversed = inv(np.add(gtg, gammatgamma))
+
+    temp = inversed.dot(G.transpose())
+    W = temp.dot(y)
+
+    # print("W=",W)
+
+    return W
 
 def calculateWeights(lamda,n_clusters,G,y,centers,sigma_array):
     gamma = lamda * np.identity(n_clusters)
@@ -178,25 +193,65 @@ def calculateSigma_withDmax(dmaxes):
 
     return (sigma_array)
 
+def calculateSmallL(x, center, sigma):
+    g = gaussianFunction(x, center, sigma)
+    lamda = [g]
+    for p in range(len(x)):
+        lamda.append(g * x[p])
+    # print(len(lamda))
+    return lamda
+
+def calculateLAMDA(x,centers,sigmas,y_kmeans):
+    bigL = []
+    for n in range(len(x)):
+        L=[]
+        for c in range(len(centers)):
+            L.extend(calculateSmallL(x[n],centers[c],sigmas[c]))
+        bigL.append(L)
+    # print(len(L))
+    return bigL
+
+def polynomialRBF(lamda, n_clusters,x,y):
+    y_kmeans, centers = kMeans(x, n_clusters)
+    sigma_array = (calculateSigmaArray(centers))
+
+    L = calculateLAMDA(x,centers,sigma_array, y_kmeans)
+    L = np.array(L)
+    print(L.shape)
+
+    W = calculateWeights(lamda,n_clusters,L,y,centers, sigma_array, len(x[0]))
+    Y = L.dot(W)
+
 def doTheNet(lamda,n_clusters,x,y):
     y_kmeans, centers = kMeans(x, n_clusters)
 
-    # dmaxes = multidistance(x,n_clusters,y_kmeans,centers)
-    # sigma_array = calculateSigma_withDmax(dmaxes)
-    # print(sigma_array)
     sigma_array = (calculateSigmaArray(centers))
     # print(sigma_array)
 
     G = gaussianMatrix(x,centers,sigma_array)
-    # print(G.shape)
+    print(G.shape)
     W = calculateWeights(lamda,n_clusters,G,y,centers, sigma_array)
 
     Y = G.dot(W)
 
     error = np.subtract(y,Y)
+    print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
+    return rootMeanError(error)
+
+def doThePolyNet(lamda, n_clusters,x,y):
+    y_kmeans, centers = kMeans(x, n_clusters)
+
+    sigma_array = (calculateSigmaArray(centers))
+
+    L = calculateLAMDA(x,centers,sigma_array, y_kmeans)
+    L = np.array(L)
+    print(L.shape)
+
+    W = calculateWeightsPolynomial(lamda,n_clusters,L,y,centers, sigma_array, len(x[0]))
+    Y = L.dot(W)
+    error = np.subtract(y,Y)
 
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
-
     return rootMeanError(error)
 
 import matplotlib.pyplot as plt
@@ -208,13 +263,11 @@ from numpy.linalg import inv
 lamda = 1
 
 x, y = readCSV('data.csv')
-# print(x)
 x = np.asarray(x)
 y = np.asarray(y)
 
-# exit()
-
+# print(x.shape)
 # for lamda in [0.1,1,10,100]:
 #     print("LAMDA=",lamda)
 for c in range(2,30):
-    doTheNet(lamda,c,x,y)
+    doThePolyNet(lamda,c,x,y)
