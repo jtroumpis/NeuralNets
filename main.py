@@ -1,7 +1,7 @@
 import csv, math
 
 def isInput(s):
-    return 'output' in s
+    return 'input' in s
 
 def addToNetDict(dictionary,key,value):
     try:
@@ -62,6 +62,7 @@ def readCSV(filename = 'data.csv', keep_this=None):
                     if isInput(key):
                         x_sub_list.append(value)
                     else:
+                        # print(key)
                         y_sub_list.append(value)
 
             x.append(x_sub_list)
@@ -97,10 +98,10 @@ def multidistance(array,n_clusters,cluster_array,center_array):
     return (max_dist)
 
 # Calculates the gaussian function for a vector
-def gaussianFunction(array, center, sigma):
+def gaussianFunction(x, center, sigma):
     gaussian_row = np.array([])
-    for k in range(len(array)):
-        dist = calcDistance(array[k], center)
+    for p in range(len(x)):
+        dist = calcDistance(x[p], center)
         try:
             fraction = math.pow(dist / sigma,2)
         except ZeroDivisionError:
@@ -111,9 +112,9 @@ def gaussianFunction(array, center, sigma):
     return gaussian_row
 
 # Makes the gaussian matrix
-def gaussianMatrix(array,center_array,sigma_array):
-    for i in range(len(center_array)):
-        g = gaussianFunction(array, center_array[i], sigma_array[i])
+def gaussianMatrix(x,centers,sigma_array):
+    for i in range(len(centers)):
+        g = gaussianFunction(x, centers[i], sigma_array[i])
         try:
             gaussian_array = np.vstack([gaussian_array, g])
         except UnboundLocalError:
@@ -187,15 +188,12 @@ def doTheNet(lamda,n_clusters,x,y):
     # print(sigma_array)
 
     G = gaussianMatrix(x,centers,sigma_array)
-    print(G.shape)
+    # print(G.shape)
     W = calculateWeights(lamda,n_clusters,G,y,centers, sigma_array)
+
     Y = G.dot(W)
 
-    # print("Y=",Y)
-
     error = np.subtract(y,Y)
-
-    # print("error=", error)
 
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
 
