@@ -14,28 +14,31 @@ class Particle():
         self.n_clusters = n_clusters
         self.x = x
         self.y = y
+        self.position = []
 
         x_min = np.amin(x, axis=0)
         x_max = np.amax(x, axis=0)
 
-        pos = []
-        # Add to the position c*p variables as the centers
-        for c in range(n_clusters):
-            for p in range(len(x_min)):
-                pos.append(random.uniform(x_min[p],x_max[p]))
+        self.initCenters(n_clusters,x_min,x_max)
+        self.initSigmas(n_clusters,x_min,x_max)
 
-        # Add to the position c variables as the sigmas
-        for c in range(n_clusters):
-            pos.append(random.uniform(min(x_min),max(x_max)))
-
-        self.position = pos
-
-        self.pbest = (doTheParticleNet(x,y,self.getCenters(),self.getSigmas()),pos)
+        self.pbest = (doTheParticleNet(x,y,self.getCenters(),self.getSigmas()),self.position)
 
         self.vel = []
         # print(min(x_min),max(x_max))
         for i in range(n_clusters*len(x_min)+n_clusters):
             self.vel.append(random.uniform(-max(x_max),max(x_max)))
+
+    # Add to the position c*p variables as the centers
+    def initCenters(self,n_clusters,x_min,x_max):
+        for c in range(n_clusters):
+            for p in range(len(x_min)):
+                self.position.append(random.uniform(x_min[p],x_max[p]))
+
+    # Add to the position c variables as the sigmas
+    def initSigmas(self,n_clusters,x_min,x_max):
+        for c in range(n_clusters):
+            self.position.append(random.uniform(min(x_min),max(x_max)))
 
     def getPBest(self):
         return self.pbest
@@ -80,3 +83,7 @@ class Particle():
             self.pbest = (fitness,self.position)
 
         return self.pbest
+
+class Full_Particle(Particle):
+    def __init__(self,x,y,n_clusters):
+        pass
