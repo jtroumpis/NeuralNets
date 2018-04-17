@@ -260,21 +260,27 @@ def doThePolyNet(lamda, n_clusters,x,y):
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
     return rootMeanError(error)
 
-def doTheParticleNet(x, y, centers, sigmas, lamda=1):
+def doTheParticleNet(x, y, centers, sigmas, W=None, lamda=1):
     v = int(len(x)*0.4)
     x_test = x[v:]
     x_train = x[:v]
     y_test = y[v:]
     y_train = y[:v]
 
-    L = calculateLAMDA(x_train,centers,sigmas)
 
-    # print(L.shape)
-    W = calculateWeightsPolynomial(lamda,len(centers),L,y_train,centers, sigmas, len(x[0]))
+
+    # print(sigmas.shape)
+    try:
+        # Needed for reasons...
+        W = W.reshape(len(W),1)
+    except:
+        L = calculateLAMDA(x_train,centers,sigmas)
+        W = calculateWeightsPolynomial(lamda,len(centers),L,y_train,centers, sigmas, len(x[0]))
+
     # print(W.shape)
     test_L = calculateLAMDA(x_test,centers,sigmas)
-
     Y = test_L.dot(W)
+    # print(Y.shape)
     error = np.subtract(y_test,Y)
 
     # print("rootMeanError for c=%d: %f" %(len(centers),rootMeanError(error)))

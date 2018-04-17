@@ -1,4 +1,4 @@
-from Particle import Particle
+from Particle import Particle, Full_Particle
 from utilities import *
 lamda = 1
 
@@ -18,13 +18,15 @@ y = np.asarray(y)
 #     doThePolyNet(lamda,c,x,y)
 
 n_of_particles = 20
-n_clusters = 10
+n_clusters = 5
 p_list = []
 gbest = None
 
 #Initialise particles
 for i in range(n_of_particles):
+    # p_list.append(Full_Particle(x,y,n_clusters))
     p_list.append(Particle(x,y,n_clusters))
+    print("Creating particle", i)
     try:
         if (p_list[i].getPBest()[0]) < gbest[0]:
             gbest = p_list[i].getPBest()
