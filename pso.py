@@ -3,7 +3,7 @@ from utilities import *
 import random
 lamda = 1
 
-def PSO_PRBF(x,y):
+def PSO_RBF(x,y,polynomial=True):
     # x, y = readCSV('data.csv')
     # x = np.asarray(x)
     # y = np.asarray(y)
@@ -16,7 +16,10 @@ def PSO_PRBF(x,y):
     #Initialise particles
     for i in range(n_of_particles):
         # p_list.append(Full_Particle(x,y,n_clusters))
-        p_list.append(Particle(x,y,n_clusters,inertia))
+        if polynomial:
+            p_list.append(Particle(x,y,n_clusters,inertia))
+        else:
+            p_list.append(Full_Particle(x,y,n_clusters,inertia))
         print("Creating particle", i)
         try:
             if (p_list[i].getPBest()[0]) < gbest[0]:

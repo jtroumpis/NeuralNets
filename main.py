@@ -8,31 +8,28 @@ import pso
 
 print("(1). Polynomial RBF with PSO for (centers, sigmas).")
 print("(2). RBF with PSO for (centers, sigmas, weights).")
+print("(3). Feed-Forward with PSO.")
+print("(4). RBF with k-means.")
+print("(5). Polynomial RBF with k-means.")
 selection = int(input("Please choose an option: "))
 
 x, y = readCSV('data.csv')
 x = np.asarray(x)
 y = np.asarray(y)
 
+lamda=1
+
 if selection==1:
     print("Starting Polynomial RBF...")
-    pso.PSO_PRBF(x,y)
+    pso.PSO_RBF(x,y)
 elif selection==2:
     print("Starting RBF swarm...")
-
+    pso.PSO_RBF(x,y,False)
 elif selection==3:
     print("Feed-Forward under construction...")
-
-# print(str(sys.argv))
-#
-# exit()
-
-# lamda = 1
-
-
-
-# print(x.shape)
-# for lamda in [0.1,1,10,100]:
-#     print("LAMDA=",lamda)
-# for c in range(2,30):
-#     doThePolyNet(lamda,c,x,y)
+elif selection==4:
+    for c in range(2,20):
+        doTheNet(c,x,y)
+elif selection==5:
+    for c in range(2,20):
+        doThePolyNet(c,x,y)

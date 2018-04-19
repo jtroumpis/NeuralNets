@@ -6,6 +6,15 @@ import seaborn as sns; sns.set()  # for plot styling
 import numpy as np
 from numpy.linalg import inv
 
+def separateToTestTrain(factor, x, y):
+    v = int(len(x)*factor)
+    x_test = x[v:]
+    x_train = x[:v]
+    y_test = y[v:]
+    y_train = y[:v]
+
+    return  x_test, x_train, y_test, y_train
+
 def isInput(s):
     return 'input' in s
 
@@ -217,43 +226,49 @@ def calculateLAMDA(x,centers,sigmas):
     # print(len(L))
     return np.array(bigL)
 
-def polynomialRBF(lamda, n_clusters,x,y):
-    y_kmeans, centers = kMeans(x, n_clusters)
-    sigma_array = (calculateSigmaArray(centers))
+# def polynomialRBF(lamda, n_clusters,x,y):
+#     y_kmeans, centers = kMeans(x, n_clusters)
+#     sigma_array = (calculateSigmaArray(centers))
+#
+#     L = calculateLAMDA(x,centers,sigma_array, y_kmeans)
+#     L = np.array(L)
+#     print(L.shape)
+#
+#     W = calculateWeights(lamda,n_clusters,L,y,centers, sigma_array, len(x[0]))
+#     Y = L.dot(W)
 
-    L = calculateLAMDA(x,centers,sigma_array, y_kmeans)
-    L = np.array(L)
-    print(L.shape)
-
-    W = calculateWeights(lamda,n_clusters,L,y,centers, sigma_array, len(x[0]))
-    Y = L.dot(W)
-
-def doTheNet(lamda,n_clusters,x,y):
-    y_kmeans, centers = kMeans(x, n_clusters)
+def doTheNet(n_clusters,x,y, lamda=1):
+    x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
+    y_kmeans, centers = kMeans(x_train, n_clusters)
 
     sigma_array = (calculateSigmaArray(centers))
     # print(sigma_array)
 
-    G = gaussianMatrix(x,centers,sigma_array)
-    print(G.shape)
-    W = calculateWeights(lamda,n_clusters,G,y,centers, sigma_array)
+    G = gaussianMatrix(x_train,centers,sigma_array)
+    # print(G.shape)
+    W = calculateWeights(lamda,n_clusters,G,y_train,centers, sigma_array)
 
+    print(W.shape)
+    G = gaussianMatrix(x_test,centers,sigma_array)
     Y = G.dot(W)
 
-    error = np.subtract(y,Y)
+    error = np.subtract(y_test,Y)
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
     return rootMeanError(error)
 
-def separateToTestTrain(factor, x, y):
-    v = int(len(x)*factor)
-    x_test = x[v:]
-    x_train = x[:v]
-    y_test = y[v:]
-    y_train = y[:v]
+def particleNet(x, y, centers, sigma_array, W, lamda=1):
+    x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
 
-    return  x_test, x_train, y_test, y_train
+    G = gaussianMatrix(x_test,centers,sigma_array)
 
-def doThePolyNet(lamda, n_clusters,x,y):
+    W = W.reshape(len(W),1)
+    Y = G.dot(W)
+
+    error = np.subtract(y_test,Y)
+
+    return rootMeanError(error)
+
+def doThePolyNet(n_clusters,x,y, lamda=1):
     x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
 
     y_kmeans, centers = kMeans(x_train, n_clusters)
