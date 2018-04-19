@@ -244,31 +244,38 @@ def doTheNet(lamda,n_clusters,x,y):
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
     return rootMeanError(error)
 
-def doThePolyNet(lamda, n_clusters,x,y):
-    y_kmeans, centers = kMeans(x, n_clusters)
-
-    sigma_array = (calculateSigmaArray(centers))
-
-    L = calculateLAMDA(x,centers,sigma_array)
-    L = np.array(L)
-    print(L.shape)
-
-    W = calculateWeightsPolynomial(lamda,n_clusters,L,y,centers, sigma_array, len(x[0]))
-    Y = L.dot(W)
-    error = np.subtract(y,Y)
-
-    print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
-    return rootMeanError(error)
-
-def doTheParticleNet(x, y, centers, sigmas, W=None, lamda=1):
-    v = int(len(x)*0.4)
+def separateToTestTrain(factor, x, y):
+    v = int(len(x)*factor)
     x_test = x[v:]
     x_train = x[:v]
     y_test = y[v:]
     y_train = y[:v]
 
+    return  x_test, x_train, y_test, y_train
 
+def doThePolyNet(lamda, n_clusters,x,y):
+    x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
 
+    y_kmeans, centers = kMeans(x_train, n_clusters)
+
+    sigma_array = (calculateSigmaArray(centers))
+
+    L = calculateLAMDA(x_train,centers,sigma_array)
+    L = np.array(L)
+    # print(L.shape)
+
+    W = calculateWeightsPolynomial(lamda,n_clusters,L,y_train,centers, sigma_array, len(x_train[0]))
+
+    test_L = calculateLAMDA(x_test,centers,sigma_array)
+    Y = test_L.dot(W)
+
+    error = np.subtract(y_test,Y)
+
+    print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
+    return rootMeanError(error)
+
+def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1):
+    x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
     # print(sigmas.shape)
     try:
         # Needed for reasons...
