@@ -1,14 +1,6 @@
 from utilities import *
 from nets import *
 import random
-# class Point():
-#     def __init__(pos=None):
-#         self.position = pos
-#
-#     def randomPosition(x_min,x_max):
-#         self.position = []
-#         for p in range(len(x_min)):
-#             self.position.append(random.uniform(x_min[p],x_max[p]))
 
 class Particle():
     def __init__(self,x,y,n_clusters,inertia):
@@ -18,7 +10,6 @@ class Particle():
         self.position = []
         self.inertia = inertia
         self.p = len(x[0])
-        # self.posDict = {'centers': [], 'sigmas': [], 'W': []}
 
         x_min = np.amin(x, axis=0)
         x_max = np.amax(x, axis=0)
