@@ -36,7 +36,7 @@ class Particle():
     def initSigmas(self,n_clusters,x_min,x_max):
         pos = []
         for c in range(n_clusters):
-            pos.append(random.uniform(min(x_min),max(x_max)))
+            pos.append(random.uniform(0,0.1))
         return pos
 
     def initW(self,n_clusters):

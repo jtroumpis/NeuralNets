@@ -16,13 +16,13 @@ def PSO(x,y,iterations=1000,nn='prbf',n_clusters=10, n_of_particles=20):
     for i in range(n_of_particles):
         # p_list.append(Full_Particle(x,y,n_clusters))
         if nn=='prbf':
-            print("Starting Polynomial RBF (c=%d)" % (n_clusters))
+            if i == 0: print("Starting Polynomial RBF (c=%d)" % (n_clusters))
             p_list.append(Particle(x_train,y_train,n_clusters,inertia))
         elif nn=='rbf':
-            print("Starting RBF swarm (c=%d)" % (n_clusters))
+            if i == 0: print("Starting RBF swarm (c=%d)" % (n_clusters))
             p_list.append(Full_Particle(x_train,y_train,n_clusters,inertia))
         elif nn=='ff':
-            print("Starting FF swarm (c=%d)" % (n_clusters))
+            if i == 0: print("Starting FF swarm (c=%d)" % (n_clusters))
             p_list.append(FFParticle(x_train,y_train,n_clusters,inertia))
         else:
             raise ValueError('No such NN type.')
