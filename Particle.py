@@ -1,4 +1,5 @@
 from utilities import *
+from nets import *
 import random
 # class Point():
 #     def __init__(pos=None):
@@ -146,6 +147,59 @@ class Full_Particle(Particle):
         self.updatePosition()
         # print(self.vel)
         fitness = particleNet(self.x,self.y,self.getCenters(),self.getSigmas(),self.getW())
+        if fitness < self.pbest[0]:
+            print("New pbest!")
+            self.pbest = (fitness,self.position)
+
+        return self.pbest
+
+class FFParticle(Particle):
+    def __init__(self,x,y,n_clusters,inertia):
+        self.n_clusters = n_clusters
+        self.x = x
+        self.y = y
+        self.position = []
+        self.inertia = inertia
+        self.p = len(x[0])
+
+        x_min = np.amin(x, axis=0)
+        x_max = np.amax(x, axis=0)
+
+        #Initialise position
+        # This is the As
+        for j in range(n_clusters):
+            self.position.extend([random.uniform(-100, 100) for _ in range(self.p)])
+        # This is the Bs
+        self.position.extend([random.uniform(-100, 100) for _ in range(n_clusters)])
+
+        self.pbest = (feedForward(x,y,self.n_clusters,self.getA(),self.getB()),self.position)
+
+        self.vel = []
+        for i in range(len(self.position)):
+            self.vel.append(random.uniform(-max(x_max),max(x_max)))
+
+    def getA(self):
+        pos = []
+        for i in range(self.n_clusters):
+            part_pos = []
+            for j in range(self.p):
+                part_pos.append(self.position[i*self.p+j])
+            pos.append(part_pos)
+        return pos
+
+    def getB(self):
+        pos = []
+        for i in range(self.n_clusters*self.p,len(self.position)):
+            pos.append(self.position[i])
+        return pos
+
+    def update(self,gBest):
+
+        self.updateVelocity(gBest)
+        self.updatePosition()
+        # print(self.vel)
+
+        fitness = feedForward(self.x,self.y,self.n_clusters,self.getA(),self.getB())
         if fitness < self.pbest[0]:
             print("New pbest!")
             self.pbest = (fitness,self.position)

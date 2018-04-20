@@ -71,7 +71,7 @@ def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1):
     # print("rootMeanError for c=%d: %f" %(len(centers),rootMeanError(error)))
     return rootMeanError(error)
 
-def calcWeightedSum(x, n_clusters):
+def calcWeightedSum(x, n_clusters,a):
     sums = []
     for c in range(n_clusters):
         node_sum = 0
@@ -85,14 +85,15 @@ def feedForward(x,y, n_clusters,a,b):
     x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
     errors = []
     for i in range(len(x_train)):
-        sums = calcWeightedSum(x_train[i], n_clusters)
+        sums = calcWeightedSum(x_train[i], n_clusters,a)
         total_sum = 0
         for c in range(len(sums)):
             temp = np.tanh(sums[c]/2)
             total_sum += temp * b[c]
         errors.append(y_train[i] - total_sum)
 
-    print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(errors)))
+    return rootMeanError(errors)
+    # print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(errors)))
 
 
 if __name__ == "__main__":
@@ -100,9 +101,12 @@ if __name__ == "__main__":
     x, y = readCSV('data.csv')
     x = np.asarray(x)
     y = np.asarray(y)
-    a = []
-    for j in range(len(x)):
-        a.append([random.uniform(-100, 100) for _ in range(len(x[0]))])
-    b = [random.uniform(-100, 100) for _ in range(5)]
 
-    feedForward(x,y,5,a,b)
+    n_clusters = 5
+    a = []
+
+    for j in range(n_clusters):
+        a.append([random.uniform(-100, 100) for _ in range(len(x[0]))])
+    b = [random.uniform(-100, 100) for _ in range(n_clusters)]
+
+    feedForward(x,y,n_clusters,a,b)

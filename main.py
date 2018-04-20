@@ -14,37 +14,32 @@ if len(sys.argv)!=1:
         iterations = int(sys.argv[2])
 
     if sys.argv[1] == 'prbf':
-        print("Starting Polynomial RBF...")
-        pso.PSO_RBF(x,y,iterations)
+        selection = 1
     elif sys.argv[1] == 'rbf':
-        print("Starting RBF swarm...")
-        pso.PSO_RBF(x,y,iterations,False)
+        selection = 2
     elif sys.argv[1]=='ff':
-        print("Feed-Forward under construction...")
+        selection = 3
     elif sys.argv[1]=='srbf':
-        for c in range(2,20):
-            doTheNet(c,x,y)
+        selection = 4
     elif sys.argv[1]=='sprbf':
-        for c in range(2,20):
-            doThePolyNet(c,x,y)
-    exit()
-
-
-print("(1). Polynomial RBF with PSO for (centers, sigmas).")
-print("(2). RBF with PSO for (centers, sigmas, weights).")
-print("(3). Feed-Forward with PSO.")
-print("(4). RBF with k-means.")
-print("(5). Polynomial RBF with k-means.")
-selection = int(input("Please choose an option: "))
+        selection = 5
+else:
+    print("(1). Polynomial RBF with PSO for (centers, sigmas).")
+    print("(2). RBF with PSO for (centers, sigmas, weights).")
+    print("(3). Feed-Forward with PSO.")
+    print("(4). RBF with k-means.")
+    print("(5). Polynomial RBF with k-means.")
+    selection = int(input("Please choose an option: "))
 
 if selection==1:
     print("Starting Polynomial RBF...")
-    pso.PSO_RBF(x,y)
+    pso.PSO(x,y,iterations)
 elif selection==2:
     print("Starting RBF swarm...")
-    pso.PSO_RBF(x,y,False)
+    pso.PSO(x,y,iterations,'rbf')
 elif selection==3:
-    print("Feed-Forward under construction...")
+    print("Starting Feed-Forward swarm...")
+    pso.PSO(x,y,iterations,'ff')
 elif selection==4:
     for c in range(2,20):
         doTheNet(c,x,y)

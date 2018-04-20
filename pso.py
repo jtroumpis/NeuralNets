@@ -1,23 +1,26 @@
-from Particle import Particle, Full_Particle
+from Particle import Particle, Full_Particle, FFParticle
 from utilities import *
 from nets import *
 import random
 lamda = 1
 
-def PSO_RBF(x,y,iterations=1000,polynomial=True,n_clusters=5, n_of_particles=20):
+def PSO(x,y,iterations=1000,nn='prbf',n_clusters=10, n_of_particles=20):
     inertia = random.uniform(0.5,1)
     p_list = []
     gbest = None
-
 
     print("Creating particles...")
     #Initialise particles
     for i in range(n_of_particles):
         # p_list.append(Full_Particle(x,y,n_clusters))
-        if polynomial:
+        if nn=='prbf':
             p_list.append(Particle(x,y,n_clusters,inertia))
-        else:
+        elif nn=='rbf':
             p_list.append(Full_Particle(x,y,n_clusters,inertia))
+        elif nn=='ff':
+            p_list.append(FFParticle(x,y,n_clusters,inertia))
+        else:
+            raise ValueError('No such NN type.')
         # print("Creating particle", i)
         try:
             if (p_list[i].getPBest()[0]) < gbest[0]:
