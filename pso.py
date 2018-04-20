@@ -35,9 +35,10 @@ def PSO(x,y,iterations=1000,nn='prbf',n_clusters=10, n_of_particles=20):
         print("Iteration",i)
         c=0
         for p in p_list:
-            pbest = p.update(gbest)
+            pbest, to_print = p.update(gbest)
             c+=1
-            print("Particle[%d]: %f" % (c,pbest[0]))
+            if to_print:
+                print("Particle[%d] - New pBest: %f" % (c,pbest[0]))
             if  pbest[0] < gbest[0]:
                 gbest = pbest
                 print("New gbest = ", gbest)
