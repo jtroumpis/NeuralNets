@@ -8,10 +8,10 @@ from numpy.linalg import inv
 
 def separateToTestTrain(factor, x, y):
     v = int(len(x)*factor)
-    x_test = x[v:]
-    x_train = x[:v]
-    y_test = y[v:]
-    y_train = y[:v]
+    x_test = x[:v]
+    x_train = x[v:]
+    y_test = y[:v]
+    y_train = y[v:]
 
     return  x_test, x_train, y_test, y_train
 
