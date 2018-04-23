@@ -97,8 +97,8 @@ class Particle():
         if fitness < self.pbest[0]:
             # print("New pbest!", fitness)
             self.pbest = (fitness,self.position)
-            return self.pbest, True
-        return self.pbest, False
+            return self.pbest, True, fitness
+        return self.pbest, False, fitness
 
 class Full_Particle(Particle):
     def __init__(self,x,y,n_clusters, inertia):
@@ -149,8 +149,8 @@ class Full_Particle(Particle):
         if fitness < self.pbest[0]:
             # print("New pbest!", fitness)
             self.pbest = (fitness,self.position)
-            return self.pbest, True
-        return self.pbest, False
+            return self.pbest, True, fitness
+        return self.pbest, False, fitness
 
 class FFParticle(Particle):
     def __init__(self,x,y,n_clusters,inertia):
@@ -205,5 +205,5 @@ class FFParticle(Particle):
         if fitness < self.pbest[0]:
             # print("New pbest!", fitness)
             self.pbest = (fitness,self.position)
-            return self.pbest, True
-        return self.pbest, False
+            return self.pbest, True, fitness
+        return self.pbest, False, fitness
