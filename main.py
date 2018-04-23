@@ -3,48 +3,56 @@ from nets import *
 import numpy as np
 import pso,sys
 
+import argparse
+
+
+parser = argparse.ArgumentParser(description='Welcome my friend.')
+
+parser.add_argument('-s --SELECT', action="store_true", dest='select',
+                    help='CHOOSE THE NN')
+parser.add_argument('-n', action="store", dest='nn', default='prbf',
+                    help='which NN should be used: options (prbf, rbf, ff)')
+parser.add_argument('-c', action="store", dest='n_clusters', type=int, default=10,
+                    help='The number of clusters that should be used')
+parser.add_argument('-i', action="store", dest='iterations', type=int, default=1000,
+                    help='The number of iterations')
+
+args = parser.parse_args()
+# print(args.accumulate(args.integers))
+
+
+# print(args.nn)
+
 x, y = readCSV('data.csv')
 x = np.asarray(x)
 y = np.asarray(y)
 
-iterations = 1000
+iterations = args.iterations
+n_clusters = args.n_clusters
+nn_type = args.nn
 
-if len(sys.argv)!=1:
-    try:
-        iterations = int(sys.argv[2])
-    except IndexError:
-        pass
 
-    if sys.argv[1] == 'prbf':
-        selection = 1
-    elif sys.argv[1] == 'rbf':
-        selection = 2
-    elif sys.argv[1]=='ff':
-        selection = 3
-    elif sys.argv[1]=='srbf':
-        selection = 4
-    elif sys.argv[1]=='sprbf':
-        selection = 5
-else:
+
+if args.select:
     print("(1). Polynomial RBF with PSO for (centers, sigmas).")
     print("(2). RBF with PSO for (centers, sigmas, weights).")
     print("(3). Feed-Forward with PSO.")
     print("(4). RBF with k-means.")
     print("(5). Polynomial RBF with k-means.")
-    selection = int(input("Please choose an option: "))
+    nn_type = int(input("Please choose an option: "))
 
-if selection==1:
+if nn_type == 'prbf':
     # print("Starting Polynomial RBF...")
-    pso.PSO(x,y,iterations)
-elif selection==2:
+    pso.PSO(x,y,iterations,n_clusters)
+elif nn_type == 'rbf':
     # print("Starting RBF swarm...")
-    pso.PSO(x,y,iterations,'rbf')
-elif selection==3:
+    pso.PSO(x,y,iterations,n_clusters,'rbf')
+elif nn_type == 'ff':
     # print("Starting Feed-Forward swarm...")
-    pso.PSO(x,y,iterations,'ff')
-elif selection==4:
-    for c in range(2,20):
+    pso.PSO(x,y,iterations,n_clusters,'ff')
+elif nn_type == 'srbf':
+    for c in range(2,n_clusters):
         doTheNet(c,x,y)
-elif selection==5:
-    for c in range(2,20):
+elif nn_type == 'sprbf':
+    for c in range(2,n_clusters):
         doThePolyNet(c,x,y)

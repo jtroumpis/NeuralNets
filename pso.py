@@ -4,7 +4,7 @@ from nets import *
 import random
 lamda = 1
 
-def PSO(x,y,iterations=1000,nn='prbf',n_clusters=10, n_of_particles=20):
+def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20):
     x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
 
     inertia = random.uniform(0.5,1)
