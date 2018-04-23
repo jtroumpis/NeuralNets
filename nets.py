@@ -23,10 +23,8 @@ def particleNet(x, y, centers, sigma_array, W, lamda=1):
     # x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
 
     G = gaussianMatrix(x,centers,sigma_array)
-
     W = W.reshape(len(W),1)
     Y = G.dot(W)
-
     error = np.subtract(y,Y)
 
     return rootMeanError(error)

@@ -8,6 +8,7 @@ class Particle():
         self.x = x
         self.y = y
         self.position = []
+        self.vel = []
         self.inertia = inertia
         self.p = len(x[0])
 
@@ -15,13 +16,15 @@ class Particle():
         x_max = np.amax(x, axis=0)
 
         self.position.extend(self.initCenters(n_clusters,x_min,x_max))
-        self.position.extend(self.initSigmas(n_clusters,x_min,x_max))
+        self.vel.extend(self.initCenters(n_clusters,x_min,x_max))
+        self.position.extend(self.initSigmas(n_clusters,1000000,1000000000))
+        self.vel.extend(self.initSigmas(n_clusters,1000000,1000000000))
 
         self.pbest = (particlePolyRBF(x,y,self.getCenters(),self.getSigmas()),self.position)
 
-        self.vel = []
-        for i in range(len(self.position)):
-            self.vel.append(random.uniform(-max(x_max),max(x_max)))
+
+        # for i in range(len(self.position)):
+        #     self.vel.append(random.uniform((-10),(10)))
 
     # Add to the position c*p variables as the centers
     def initCenters(self,n_clusters,x_min,x_max):
@@ -33,10 +36,10 @@ class Particle():
         return pos
 
     # Add to the position c variables as the sigmas
-    def initSigmas(self,n_clusters,x_min,x_max):
+    def initSigmas(self,n_clusters,minimum,maximum):
         pos = []
         for c in range(n_clusters):
-            pos.append(random.uniform(0,0.1))
+            pos.append(random.uniform(minimum,maximum))
         return pos
 
     def initW(self,n_clusters):
@@ -85,11 +88,12 @@ class Particle():
             self.position[i] += self.vel[i]
 
     def update(self,gBest):
-
-        self.updateVelocity(gBest)
         self.updatePosition()
+        self.updateVelocity(gBest)
+
         # print(self.vel)
         fitness = particlePolyRBF(self.x,self.y,self.getCenters(),self.getSigmas())
+        # print(fitness)
         if fitness < self.pbest[0]:
             # print("New pbest!", fitness)
             self.pbest = (fitness,self.position)
@@ -102,6 +106,7 @@ class Full_Particle(Particle):
         self.x = x
         self.y = y
         self.position = []
+        self.vel = []
         self.inertia = inertia
         self.p = len(x[0])
 
@@ -109,15 +114,18 @@ class Full_Particle(Particle):
         x_max = np.amax(x, axis=0)
 
         self.position.extend(self.initCenters(n_clusters,x_min,x_max))
-        self.position.extend(self.initSigmas(n_clusters,x_min,x_max))
+        self.vel.extend(self.initCenters(n_clusters,x_min,x_max))
+        self.position.extend(self.initSigmas(n_clusters,1000000,1000000000))
+        self.vel.extend(self.initSigmas(n_clusters,1000000,1000000000))
         self.position.extend(self.initW(n_clusters))
+        self.vel.extend(self.initW(n_clusters))
 
         self.pbest = (particleNet(x,y,self.getCenters(),self.getSigmas(),self.getW()),self.position)
 
-        self.vel = []
-        # print(len(self.position))
-        for i in range(len(self.position)):
-            self.vel.append(random.uniform(-max(x_max),max(x_max)))
+        # self.vel = []
+        # # print(len(self.position))
+        # for i in range(len(self.position)):
+        #     self.vel.append(random.uniform((-10),(10)))
 
     def initW(self,n_clusters):
         pos = []
@@ -133,11 +141,11 @@ class Full_Particle(Particle):
         return np.asarray(ws)
 
     def update(self,gBest):
-
-        self.updateVelocity(gBest)
         self.updatePosition()
+        self.updateVelocity(gBest)
         # print(self.vel)
         fitness = particleNet(self.x,self.y,self.getCenters(),self.getSigmas(),self.getW())
+        # print(fitness)
         if fitness < self.pbest[0]:
             # print("New pbest!", fitness)
             self.pbest = (fitness,self.position)
@@ -150,6 +158,7 @@ class FFParticle(Particle):
         self.x = x
         self.y = y
         self.position = []
+        self.vel = []
         self.inertia = inertia
         self.p = len(x[0])
 
@@ -160,14 +169,16 @@ class FFParticle(Particle):
         # This is the As
         for j in range(n_clusters):
             self.position.extend([random.uniform(-100, 100) for _ in range(self.p)])
+            self.vel.extend([random.uniform(-100, 100) for _ in range(self.p)])
         # This is the Bs
         self.position.extend([random.uniform(-100, 100) for _ in range(n_clusters)])
+        self.vel.extend([random.uniform(-100, 100) for _ in range(n_clusters)])
 
         self.pbest = (feedForward(x,y,self.n_clusters,self.getA(),self.getB()),self.position)
 
-        self.vel = []
-        for i in range(len(self.position)):
-            self.vel.append(random.uniform(-max(x_max),max(x_max)))
+        # self.vel = []
+        # for i in range(len(self.position)):
+        #     self.vel.append(random.uniform((-10),(10)))
 
     def getA(self):
         pos = []
@@ -185,12 +196,12 @@ class FFParticle(Particle):
         return pos
 
     def update(self,gBest):
-
-        self.updateVelocity(gBest)
         self.updatePosition()
+        self.updateVelocity(gBest)
         # print(self.vel)
 
         fitness = feedForward(self.x,self.y,self.n_clusters,self.getA(),self.getB())
+        # print (fitness)
         if fitness < self.pbest[0]:
             # print("New pbest!", fitness)
             self.pbest = (fitness,self.position)
