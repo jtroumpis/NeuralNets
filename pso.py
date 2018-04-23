@@ -4,7 +4,7 @@ from nets import *
 import random
 lamda = 1
 
-def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20):
+def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False):
     x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
 
     inertia = random.uniform(0.5,1)
@@ -37,16 +37,16 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20):
     print("Staring gbest = ", gbest)
     print("Starting the swarming")
     for i in range(iterations):
-        print("Iteration",i)
+        if not quiet: print("Iteration",i)
         c=0
         for p in p_list:
             pbest, to_print = p.update(gbest)
             c+=1
-            if to_print:
+            if not quiet and to_print:
                 print("Particle[%d] - New pBest: %f" % (c,pbest[0]))
             if  pbest[0] < gbest[0]:
                 gbest = pbest
-                print("New gbest = ", gbest)
+                print("Iteration[%d] New gbest = %s" % (i,gbest))
 
     print("Finished!")
     print("gbest = ", gbest)

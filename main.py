@@ -16,7 +16,8 @@ parser.add_argument('-c', action="store", dest='n_clusters', type=int, default=1
                     help='The number of clusters that should be used')
 parser.add_argument('-i', action="store", dest='iterations', type=int, default=1000,
                     help='The number of iterations')
-
+parser.add_argument('-q QUIET', action="store_true", dest='quiet',
+                    help='Does not print anything but gBests')
 args = parser.parse_args()
 # print(args.accumulate(args.integers))
 
@@ -30,7 +31,7 @@ y = np.asarray(y)
 iterations = args.iterations
 n_clusters = args.n_clusters
 nn_type = args.nn
-
+quiet = args.quiet
 
 
 if args.select:
@@ -43,13 +44,13 @@ if args.select:
 
 if nn_type == 'prbf':
     # print("Starting Polynomial RBF...")
-    pso.PSO(x,y,iterations,n_clusters)
+    pso.PSO(x,y,iterations,n_clusters,quiet=quiet)
 elif nn_type == 'rbf':
     # print("Starting RBF swarm...")
-    pso.PSO(x,y,iterations,n_clusters,'rbf')
+    pso.PSO(x,y,iterations,n_clusters,'rbf',quiet=quiet)
 elif nn_type == 'ff':
     # print("Starting Feed-Forward swarm...")
-    pso.PSO(x,y,iterations,n_clusters,'ff')
+    pso.PSO(x,y,iterations,n_clusters,'ff',quiet=quiet)
 elif nn_type == 'srbf':
     for c in range(2,n_clusters):
         doTheNet(c,x,y)
