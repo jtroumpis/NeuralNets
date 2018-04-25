@@ -173,7 +173,10 @@ def calculateWeightsPolynomial(lamda,n_clusters,G,y,centers,sigma_array,p):
     gtg = G.transpose().dot(G)
     gammatgamma = gamma.transpose().dot(gamma)
 
-    inversed = inv(np.add(gtg, gammatgamma))
+    try:
+        inversed = inv(np.add(gtg, gammatgamma))
+    except np.linalg.linalg.LinAlgError:
+        raise np.linalg.linalg.LinAlgError
 
     temp = inversed.dot(G.transpose())
     W = temp.dot(y)

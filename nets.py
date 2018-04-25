@@ -58,8 +58,10 @@ def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1):
         W = W.reshape(len(W),1)
     except:
         L = calculateLAMDA(x,centers,sigmas)
-        W = calculateWeightsPolynomial(lamda,len(centers),L,y,centers, sigmas, len(x[0]))
-
+        try:
+            W = calculateWeightsPolynomial(lamda,len(centers),L,y,centers, sigmas, len(x[0]))
+        except np.linalg.linalg.LinAlgError:
+            raise np.linalg.linalg.LinAlgError
     # print(L.shape)
     # test_L = calculateLAMDA(x_test,centers,sigmas)
     Y = L.dot(W)

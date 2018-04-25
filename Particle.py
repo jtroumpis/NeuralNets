@@ -100,7 +100,10 @@ class Particle():
         self.updateVelocity(gBest)
 
         # print(self.vel)
-        fitness = self.net(self.x,self.y,self.getCenters(),self.getSigmas())
+        try:
+            fitness = self.net(self.x,self.y,self.getCenters(),self.getSigmas())
+        except np.linalg.linalg.LinAlgError:
+            fitness = self.pbest[0]
         # print(fitness)
 
         return self.checkPBest(fitness)
