@@ -11,18 +11,18 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
     p_list = []
     gbest = 0
 
-    print("Creating particles...")
+    if explicit: print("Creating particles...")
     #Initialise particles
     for i in range(n_of_particles):
         # p_list.append(Full_Particle(x,y,n_clusters))
         if nn=='prbf':
-            if i == 0: print("Starting Polynomial RBF (c=%d)" % (n_clusters))
+            if i == 0 and not quiet: print("Starting Polynomial RBF (c=%d)" % (n_clusters))
             p_list.append(Particle(x_train,y_train,n_clusters,inertia))
         elif nn=='rbf':
-            if i == 0: print("Starting RBF swarm (c=%d)" % (n_clusters))
+            if i == 0 and not quiet: print("Starting RBF swarm (c=%d)" % (n_clusters))
             p_list.append(Full_Particle(x_train,y_train,n_clusters,inertia))
         elif nn=='ff':
-            if i == 0: print("Starting FF swarm (c=%d)" % (n_clusters))
+            if i == 0 and not quiet: print("Starting FF swarm (c=%d)" % (n_clusters))
             p_list.append(FFParticle(x_train,y_train,n_clusters,inertia))
         else:
             raise ValueError('No such NN type.')
@@ -34,8 +34,8 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
         # except TypeError:
         #     gbest = i
             # print("New gbest = ", gbest)
-    print("Staring gbest = ", p_list[gbest].getPBest()[0])
-    print("Starting the swarming")
+    if explicit: print("Staring gbest = ", p_list[gbest].getPBest()[0])
+    if explicit: print("Starting the swarming")
     for i in range(iterations):
         if not quiet: print("Iteration",i)
         c=0
@@ -51,19 +51,19 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
                 gbest = c
                 print("Iteration[%d] New gbest = %s" % (i,p_list[gbest].getPBest()[0]))
             c+=1
-    print("Finished!")
-    print("gbest = ", p_list[gbest].getPBest()[0])
+    if explicit: print("Finished!")
+    if explicit: print("gbest = ", p_list[gbest].getPBest()[0])
 
     pbest = p_list[gbest]
     pbest.setPositionToBest()
 
-    print("Now using testing data set...")
+    if explicit: print("Now using testing data set...")
     if nn=='prbf':
         error = particlePolyRBF(x_test,y_test,pbest.getCenters(),pbest.getSigmas())
-        print("RMSE=",error)
     elif nn=='rbf':
-        if i == 0: print("Starting RBF swarm (c=%d)" % (n_clusters))
-        p_list.append(Full_Particle(x_train,y_train,n_clusters,inertia))
+        error = particleNet(x_test,y_test,pbest.getCenters(),pbest.getSigmas(),pbest.getW())
     elif nn=='ff':
-        if i == 0: print("Starting FF swarm (c=%d)" % (n_clusters))
-        p_list.append(FFParticle(x_train,y_train,n_clusters,inertia))
+        error = feedForward(x_test,y_test,n_clusters,pbest.getA(),pbest.getB())
+
+    if not quiet: print("RMSE=",error)
+    return error

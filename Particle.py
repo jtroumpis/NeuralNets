@@ -151,7 +151,7 @@ class Full_Particle(Particle):
         # print(self.vel)
         fitness = particleNet(self.x,self.y,self.getCenters(),self.getSigmas(),self.getW())
         # print(fitness)
-        return checkPBest(fitness)
+        return self.checkPBest(fitness)
 
 class FFParticle(Particle):
     def __init__(self,x,y,n_clusters,inertia):
@@ -203,4 +203,4 @@ class FFParticle(Particle):
 
         fitness = feedForward(self.x,self.y,self.n_clusters,self.getA(),self.getB())
         # print (fitness)
-        return checkPBest(fitness)
+        return self.checkPBest(fitness)

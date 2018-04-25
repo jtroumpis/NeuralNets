@@ -249,6 +249,10 @@ def calcWeightedSum(x, n_clusters,a):
             node_sum += x[p]*a[c][p]
         sums.append(node_sum)
     return sums
+
+
+def getMeanSTD(l):
+    return np.mean(l), np.std(l)
 # def polynomialRBF(lamda, n_clusters,x,y):
 #     y_kmeans, centers = kMeans(x, n_clusters)
 #     sigma_array = (calculateSigmaArray(centers))
