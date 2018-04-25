@@ -3,7 +3,7 @@ from nets import *
 import random
 
 class Particle():
-    def __init__(self,x,y,n_clusters,inertia):
+    def __init__(self,x,y,n_clusters,inertia,netType=particlePolyRBF):
         self.n_clusters = n_clusters
         self.x = x
         self.y = y
@@ -11,6 +11,7 @@ class Particle():
         self.vel = []
         self.inertia = inertia
         self.p = len(x[0])
+        self.net = netType
 
         x_min = np.amin(x, axis=0)
         x_max = np.amax(x, axis=0)
@@ -20,11 +21,8 @@ class Particle():
         self.position.extend(self.initSigmas(n_clusters,1000000,1000000000))
         self.vel.extend(self.initSigmas(n_clusters,1000000,1000000000))
 
-        self.pbest = (particlePolyRBF(x,y,self.getCenters(),self.getSigmas()),list(self.position))
+        self.pbest = (self.net(x,y,self.getCenters(),self.getSigmas()),list(self.position))
 
-
-        # for i in range(len(self.position)):
-        #     self.vel.append(random.uniform((-10),(10)))
 
     def setPositionToBest(self):
         self.position = self.pbest[1]
@@ -102,13 +100,13 @@ class Particle():
         self.updateVelocity(gBest)
 
         # print(self.vel)
-        fitness = particlePolyRBF(self.x,self.y,self.getCenters(),self.getSigmas())
+        fitness = self.net(self.x,self.y,self.getCenters(),self.getSigmas())
         # print(fitness)
 
-        return checkPBest(fitness)
+        return self.checkPBest(fitness)
 
 class Full_Particle(Particle):
-    def __init__(self,x,y,n_clusters, inertia):
+    def __init__(self,x,y,n_clusters, inertia, netType=particleNet):
         self.n_clusters = n_clusters
         self.x = x
         self.y = y
