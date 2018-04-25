@@ -60,7 +60,7 @@ def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1):
         L = calculateLAMDA(x,centers,sigmas)
         W = calculateWeightsPolynomial(lamda,len(centers),L,y,centers, sigmas, len(x[0]))
 
-    # print(W.shape)
+    # print(L.shape)
     # test_L = calculateLAMDA(x_test,centers,sigmas)
     Y = L.dot(W)
     # print(Y.shape)
@@ -68,15 +68,6 @@ def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1):
 
     # print("rootMeanError for c=%d: %f" %(len(centers),rootMeanError(error)))
     return rootMeanError(error)
-
-def calcWeightedSum(x, n_clusters,a):
-    sums = []
-    for c in range(n_clusters):
-        node_sum = 0
-        for p in range(len(x)):
-            node_sum += x[p]*a[c][p]
-        sums.append(node_sum)
-    return sums
 
 
 def feedForward(x,y, n_clusters,a,b):

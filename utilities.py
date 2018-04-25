@@ -1,12 +1,24 @@
 import csv, math
 from sklearn.cluster import KMeans
 from utilities import *
-import matplotlib.pyplot as plt
-import seaborn as sns; sns.set()  # for plot styling
+# import matplotlib.pyplot as plt
+# import seaborn as sns; sns.set()  # for plot styling
 import numpy as np
 from numpy.linalg import inv
 
 def separateToTestTrain(factor, x, y):
+    l = []
+    for i in range(len(x)):
+        l.append((x[i],y[i]))
+
+    np.random.shuffle(l)
+    x=[]
+    y=[]
+    for i in l:
+        x.append(i[0])
+        y.append(i[1])
+
+
     v = int(len(x)*factor)
     x_test = x[:v]
     x_train = x[v:]
@@ -229,6 +241,14 @@ def calculateLAMDA(x,centers,sigmas):
     # print(len(L))
     return np.array(bigL)
 
+def calcWeightedSum(x, n_clusters,a):
+    sums = []
+    for c in range(n_clusters):
+        node_sum = 0
+        for p in range(len(x)):
+            node_sum += x[p]*a[c][p]
+        sums.append(node_sum)
+    return sums
 # def polynomialRBF(lamda, n_clusters,x,y):
 #     y_kmeans, centers = kMeans(x, n_clusters)
 #     sigma_array = (calculateSigmaArray(centers))
