@@ -97,7 +97,7 @@ if args.select:
 
 
 with open('res.txt','a+') as f:
-    f.write(str(datetime.now()+'\n'))
+    f.write(str(datetime.now())+'\n')
 
 if args.all:
     for nn in ['prbf','rbf','ff']:
