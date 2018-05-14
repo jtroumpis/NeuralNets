@@ -5,12 +5,12 @@ import pso,sys, json
 from datetime import datetime
 import argparse
 
-def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
+def selectNN(nn_type,run,x_test, x_train, y_test, y_train,iterations,n_clusters,quiet,expl):
     errors = []
     if nn_type == 'prbf':
         # print("Starting Polynomial RBF...")
         for i in range(run):
-            errors.append(pso.PSO(x,y,iterations,n_clusters,quiet=quiet,explicit=expl))
+            errors.append(pso.PSO(x_test, x_train, y_test, y_train,iterations,n_clusters,quiet=quiet,explicit=expl))
 
         mean , std = getMeanSTD(errors)
         res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
@@ -20,7 +20,7 @@ def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
     elif nn_type == 'rbf':
         # print("Starting RBF swarm...")
         for i in range(run):
-            errors.append(pso.PSO(x,y,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl))
+            errors.append(pso.PSO(x_test, x_train, y_test, y_train,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl))
         mean , std = getMeanSTD(errors)
         res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
 
@@ -29,7 +29,7 @@ def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
 
     elif nn_type == 'ff':
         for i in range(run):
-            errors.append(pso.PSO(x,y,iterations,n_clusters,'ff',quiet=quiet,explicit=expl))
+            errors.append(pso.PSO(x_test, x_train, y_test, y_train,iterations,n_clusters,'ff',quiet=quiet,explicit=expl))
         mean , std = getMeanSTD(errors)
         res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
 
@@ -39,7 +39,7 @@ def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
     elif nn_type == 'srbf':
         for c in range(2,n_clusters):
             for i in range(run):
-                errors.append(doTheNet(c,x,y))
+                errors.append(doTheNet(c,x_test, x_train, y_test, y_train))
                 mean , std = getMeanSTD(errors)
             res = {'nn_type': nn_type, 'c': c, 'mean': mean, 'std': std}
 
@@ -48,14 +48,14 @@ def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
     elif nn_type == 'sprbf':
         for c in range(2,n_clusters):
             for i in range(run):
-                errors.append(doThePolyNet(c,x,y))
+                errors.append(doThePolyNet(c,x_test, x_train, y_test, y_train))
                 mean , std = getMeanSTD(errors)
             res = {'nn_type': nn_type, 'c': c, 'mean': mean, 'std': std}
 
             with open('res.txt','a+') as f:
                 json.dump(res, f)
     with open('res.txt','a+') as f:
-        f.write('/n')
+        f.write('\n')
 
 parser = argparse.ArgumentParser(description='Welcome my friend.')
 
@@ -80,6 +80,7 @@ args = parser.parse_args()
 x, y = readCSV('data.csv')
 x = np.asarray(x)
 y = np.asarray(y)
+x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
 
 iterations = args.iterations
 n_clusters = args.n_clusters
@@ -102,6 +103,6 @@ with open('res.txt','a+') as f:
 if args.all:
     for nn in ['prbf','rbf','ff']:
         for c in [2,4,6,8,10,12,14]:
-            selectNN(nn,args.run,x,y,args.iterations,c,args.quiet,args.explicit)
+            selectNN(nn,args.run,x_test, x_train, y_test, y_train,args.iterations,c,args.quiet,args.explicit)
 
-selectNN(args.nn,args.run,x,y,args.iterations,args.n_clusters,args.quiet,args.explicit)
+selectNN(args.nn,args.run,x_test, x_train, y_test, y_train,args.iterations,args.n_clusters,args.quiet,args.explicit)

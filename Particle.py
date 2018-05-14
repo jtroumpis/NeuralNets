@@ -16,10 +16,10 @@ class Particle():
         x_min = np.amin(x, axis=0)
         x_max = np.amax(x, axis=0)
 
-        self.position.extend(self.initCenters(n_clusters,x_min,x_max))
-        self.vel.extend(self.initCenters(n_clusters,x_min,x_max))
-        self.position.extend(self.initSigmas(n_clusters,1000000,1000000000))
-        self.vel.extend(self.initSigmas(n_clusters,1000000,1000000000))
+        self.position.extend(self.initCenters(n_clusters,0,1))
+        self.vel.extend(self.initCenters(n_clusters,0,1))
+        self.position.extend(self.initSigmas(n_clusters,0.1,0.5))
+        self.vel.extend(self.initSigmas(n_clusters,0.1,0.5))
 
         self.pbest = (self.net(x,y,self.getCenters(),self.getSigmas()),list(self.position))
 
@@ -33,7 +33,7 @@ class Particle():
         pos = []
         for c in range(n_clusters):
             for p in range(self.p):
-                pos.append(random.uniform(x_min[p],x_max[p]))
+                pos.append(random.uniform(x_min,x_max))
         return pos
 
     # Add to the position c variables as the sigmas
@@ -103,7 +103,7 @@ class Particle():
         try:
             fitness = self.net(self.x,self.y,self.getCenters(),self.getSigmas())
         except np.linalg.linalg.LinAlgError:
-            fitness = self.pbest[0]
+            fitness = self.pbest[0]+1
         # print(fitness)
 
         return self.checkPBest(fitness)

@@ -6,6 +6,20 @@ from utilities import *
 import numpy as np
 from numpy.linalg import inv
 
+def convertToZeroToTone(x):
+    min_values = np.amin(x, axis=0)
+    max_values = np.amax(x, axis=1)
+    # for i in range(len(x[0])):
+    #     min_values.append( np.amin(x, axis=i))
+    #     max_values.append( np.amax(x, axis=i))
+
+    # print(min_values)
+    #
+    for i in range(len(x)):
+        for j in range(len(x[i])):
+            x[i][j] = (x[i][j] - min_values[j]) / (max_values[j] - min_values[j])
+    return x
+
 def separateToTestTrain(factor, x, y):
     l = []
     for i in range(len(x)):
@@ -105,9 +119,11 @@ def readCSV(filename = 'data.csv', keep_this=None):
         for i in range(len(x)):
             x[i].append(net_in[i])
             x[i].append(net_out[i])
+
+        x = convertToZeroToTone(x)
         return x, y
 
-# Calculates the distance
+# Calculates the distance ||x-center||
 def calcDistance(x,center):
     # print(len(x))
     dist = 0

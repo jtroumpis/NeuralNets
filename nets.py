@@ -29,7 +29,7 @@ def particleNet(x, y, centers, sigma_array, W, lamda=1):
 
     return rootMeanError(error)
 
-def doThePolyNet(n_clusters,x,y, lamda=1):
+def doThePolyNet(n_clusters,x,y, lamda=0.01):
     x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
 
     y_kmeans, centers = kMeans(x_train, n_clusters)
@@ -53,6 +53,7 @@ def doThePolyNet(n_clusters,x,y, lamda=1):
 def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1):
     # x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
     # print(sigmas.shape)
+    # print(sigmas)
     try:
         # Needed for reasons...
         W = W.reshape(len(W),1)

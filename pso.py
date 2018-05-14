@@ -4,8 +4,8 @@ from nets import *
 import random
 lamda = 1
 
-def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
-    x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
+def PSO(x_test, x_train, y_test, y_train,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
+
 
     inertia = random.uniform(0.5,1)
     p_list = []
@@ -37,7 +37,10 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
     if explicit: print("Staring gbest = ", p_list[gbest].getPBest()[0])
     if explicit: print("Starting the swarming")
     for i in range(iterations):
-        if not quiet: print("Iteration",i)
+        if not quiet:
+            print("Iteration",i)
+        elif i%100==0:
+            print("Iteration", i)
         c=0
         for p in p_list:
             pbest, to_print, fitness = p.update(p_list[gbest].getPBest())
@@ -66,4 +69,5 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
         error = feedForward(x_test,y_test,n_clusters,pbest.getA(),pbest.getB())
 
     if not quiet: print("RMSE=",error)
+    print("Finished %s (c=%d)" % (nn,n_clusters))
     return error
