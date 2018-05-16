@@ -55,7 +55,7 @@ def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
             with open('res.txt','a+') as f:
                 json.dump(res, f)
     with open('res.txt','a+') as f:
-        f.write('/n')
+        f.write('\n')
 
 parser = argparse.ArgumentParser(description='Welcome my friend.')
 
@@ -75,9 +75,13 @@ parser.add_argument('-r --RUN', action="store", dest='run', type=int, default=10
                     help='Number of repeats')
 parser.add_argument('-a --ALL', action="store_true", dest='all',
                     help='Runs all the networks')
+parser.add_argument('-g --AR_AGGR', action="store_false", dest='aa',
+                    help='Does Arithmetic Aggregation')
+parser.add_argument('-f --FILE', action="store", dest='filename', default='data.csv',
+                    help='Chooses the input file.')
 args = parser.parse_args()
 
-x, y = readCSV('data.csv')
+x, y = readCSV(args.filename,args.aa)
 x = np.asarray(x)
 y = np.asarray(y)
 
@@ -86,6 +90,8 @@ n_clusters = args.n_clusters
 nn_type = args.nn
 quiet = args.quiet
 expl = args.explicit
+# filename = args.filename
+aa = args.aa
 
 if args.select:
     print("(prbf). Polynomial RBF with PSO for (centers, sigmas).")

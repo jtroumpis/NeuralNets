@@ -50,20 +50,24 @@ def doThePolyNet(n_clusters,x,y, lamda=1):
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
     return rootMeanError(error)
 
-def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1):
+def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=100):
     # x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
     # print(sigmas.shape)
+    y = np.asarray(y)
     try:
         # Needed for reasons...
+
         W = W.reshape(len(W),1)
+        print("HI")
     except:
         L = calculateLAMDA(x,centers,sigmas)
         try:
-            W = calculateWeightsPolynomial(lamda,len(centers),L,y,centers, sigmas, len(x[0]))
+            W = calculateWeightsPolynomial(L, y, centers, sigmas, len(x[0]), lamda)
         except np.linalg.linalg.LinAlgError:
             raise np.linalg.linalg.LinAlgError
-    # print(L.shape)
+
     # test_L = calculateLAMDA(x_test,centers,sigmas)
+    # print(L.shape, W.shape)
     Y = L.dot(W)
     # print(Y.shape)
     error = np.subtract(y,Y)
