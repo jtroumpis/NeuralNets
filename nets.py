@@ -66,13 +66,33 @@ def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=100):
         except np.linalg.linalg.LinAlgError:
             raise np.linalg.linalg.LinAlgError
 
-    # test_L = calculateLAMDA(x_test,centers,sigmas)
-    # print(L.shape, W.shape)
-    Y = L.dot(W)
-    # print(Y.shape)
-    error = np.subtract(y,Y)
+    # print(W.shape)
+    # print(W[2])
+    Y=[]
+    for n in range(len(x)):
+        index = 0
+        souma = 0
+        for c in range(len(centers)):
+            g = gaussianFunction(x[n],centers[c],sigmas[c])
+            # print(g,index,len(x[0]))
+            # print(index)
+            factor = W[index]
+            temp_s = 0
+            for j in range(len(x[0])):
+                index += 1
+                temp_s += W[index]*x[n][j]
+            souma += g * (factor + temp_s)
+        Y.extend(souma)
 
-    # print("rootMeanError for c=%d: %f" %(len(centers),rootMeanError(error)))
+    # print(y.shape)
+
+    Y = np.asarray(Y)
+    # print(Y.shape)
+    Y = Y.reshape(len(Y),1)
+
+    # Y = Y.transpose()
+    error = np.subtract(y,Y)
+    # print(error.shape)
     return rootMeanError(error)
 
 
