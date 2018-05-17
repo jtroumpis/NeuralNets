@@ -50,7 +50,7 @@ def doThePolyNet(n_clusters,x,y, lamda=1):
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
     return rootMeanError(error)
 
-def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=100):
+def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1000):
     # x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
     # print(sigmas.shape)
     y = np.asarray(y)
@@ -79,8 +79,10 @@ def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=100):
             factor = W[index]
             temp_s = 0
             for j in range(len(x[0])):
+                # print(len(x[0]))
                 index += 1
                 temp_s += W[index]*x[n][j]
+            index += 1
             souma += g * (factor + temp_s)
         Y.extend(souma)
 

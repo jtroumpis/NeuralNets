@@ -85,6 +85,15 @@ x, y = readCSV(args.filename,args.aa)
 x = np.asarray(x)
 y = np.asarray(y)
 
+# with open('new_out.csv','w') as f:
+#     for i in range(len(x)):
+#         s = ""
+#         for j in x[i]:
+#             s += str(j) + ", "
+#         s += str(y[i][0]) +'\n'
+#         print(y[i])
+#         f.write(s)
+
 iterations = args.iterations
 n_clusters = args.n_clusters
 nn_type = args.nn

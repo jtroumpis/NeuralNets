@@ -36,23 +36,26 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
             # print("New gbest = ", gbest)
     if explicit: print("Staring gbest = ", p_list[gbest].getPBest()[0])
     if explicit: print("Starting the swarming")
-    for i in range(iterations):
-        if not quiet: print("Iteration",i)
-        c=0
-        for p in p_list:
-            pbest, to_print, fitness = p.update(p_list[gbest].getPBest())
+    try:
+        for i in range(iterations):
+            if not quiet: print("Iteration",i)
+            c=0
+            for p in p_list:
+                pbest, to_print, fitness = p.update(p_list[gbest].getPBest())
 
 
-            if not quiet and to_print:
-                print("Particle[%d] - New pBest: %f" % (c,pbest[0]))
-            elif explicit:
-                print("Particle[%d] - Fitness: %f - pBest: %f" % (c,fitness,pbest[0]))
-            if  pbest[0] < p_list[gbest].getPBest()[0]:
-                gbest = c
-                print("Iteration[%d] New gbest = %s" % (i,p_list[gbest].getPBest()[0]))
-            c+=1
-    if explicit: print("Finished!")
-    if explicit: print("gbest = ", p_list[gbest].getPBest()[0])
+                if not quiet and to_print:
+                    print("Particle[%d] - New pBest: %f" % (c,pbest[0]))
+                elif explicit:
+                    print("Particle[%d] - Fitness: %f - pBest: %f" % (c,fitness,pbest[0]))
+                if  pbest[0] < p_list[gbest].getPBest()[0]:
+                    gbest = c
+                    print("Iteration[%d] New gbest = %s" % (i,p_list[gbest].getPBest()[0]))
+                c+=1
+        if explicit: print("Finished!")
+        if explicit: print("gbest = ", p_list[gbest].getPBest()[0])
+    except KeyboardInterrupt:
+        print("interrupted! running test data now.")
 
     pbest = p_list[gbest]
     pbest.setPositionToBest()
