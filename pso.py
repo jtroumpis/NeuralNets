@@ -49,7 +49,7 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
     if explicit: print("Staring gbest = ", p_list[gbest].getPBest()[0])
     if explicit: print("Starting the swarming")
     for i in range(iterations):
-        stop_forever = False
+
         try:
             if not quiet: print("Iteration",i)
             c=0
@@ -64,6 +64,7 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
                     gbest = c
                     print("Iteration[%d] New gbest = %s" % (i,p_list[gbest].getPBest()[0]))
                 c+=1
+            stop_forever = False
         except KeyboardInterrupt:
             print("interrupted! running test data now.")
             error = runTestData(nn,x_test,y_test,p_list[gbest])
