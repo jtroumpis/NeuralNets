@@ -61,9 +61,9 @@ parser = argparse.ArgumentParser(description='Welcome my friend.')
 
 parser.add_argument('-s --SELECT', action="store_true", dest='select',
                     help='CHOOSE THE NN')
-parser.add_argument('-n', action="store", dest='nn', default='prbf',
+parser.add_argument('-n', action="store", dest='nn', default='',
                     help='which NN should be used: options (prbf, rbf, ff)')
-parser.add_argument('-c', action="store", dest='n_clusters', type=int, default=10,
+parser.add_argument('-c', action="store", dest='n_clusters', type=int, default=-1,
                     help='The number of clusters that should be used')
 parser.add_argument('-i', action="store", dest='iterations', type=int, default=500,
                     help='The number of iterations')
@@ -115,8 +115,21 @@ with open('res.txt','a+') as f:
     f.write(str(datetime.now())+'\n')
 
 if args.all:
-    for nn in ['prbf','rbf','ff']:
-        for c in [2,4,6,8,10,12,14]:
-            selectNN(nn,args.run,x,y,args.iterations,c,args.quiet,args.explicit)
+    nn_list = ['prbf','rbf','ff']
+    c_list = [3,4,5,6,7,8,9,10,11]
 
-selectNN(args.nn,args.run,x,y,args.iterations,args.n_clusters,args.quiet,args.explicit)
+if args.nn!='':
+    nn_list = [args.nn]
+else:
+    nn_list = ['prbf']
+
+if args.n_clusters>0:
+    c_list = [args.n_clusters]
+else:
+    c_list = [3,4,5,6,7,8,9,10,11]
+
+for nn in nn_list:
+    for c in c_list:
+        selectNN(nn,args.run,x,y,args.iterations,c,args.quiet,args.explicit)
+
+# selectNN(args.nn,args.run,x,y,args.iterations,args.n_clusters,args.quiet,args.explicit)

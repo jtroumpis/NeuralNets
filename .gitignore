@@ -1,7 +1,7 @@
 *.csv
 *.pyc
 *.out
-
+*.json
 
 \.DS_Store
 

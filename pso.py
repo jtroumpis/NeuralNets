@@ -1,7 +1,7 @@
 from Particle import Particle, Full_Particle, FFParticle
 from utilities import *
 from nets import *
-import random
+import random, json
 lamda = 1
 
 def runTestData(nn,x_test, y_test, pbest):
@@ -13,8 +13,14 @@ def runTestData(nn,x_test, y_test, pbest):
     elif nn=='rbf':
         error = particleNet(x_test,y_test,pbest.getCenters(),pbest.getSigmas(),pbest.getW())
     elif nn=='ff':
-        error = feedForward(x_test,y_test,n_clusters,pbest.getA(),pbest.getB())
+        error = feedForward(x_test,y_test,pbest.n_clusters,pbest.getA(),pbest.getB())
     return error
+
+def saveToFile(nn, n_clusters, error):
+    d = {'nn': nn, 'c': n_clusters, 'error': error}
+    with open('complete_res.json', 'a+') as f:
+        json.dump(d,f)
+        f.write('\n')
 
 def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
     x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
@@ -48,6 +54,7 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
             # print("New gbest = ", gbest)
     if explicit: print("Staring gbest = ", p_list[gbest].getPBest()[0])
     if explicit: print("Starting the swarming")
+    stop_forever = False
     for i in range(iterations):
 
         try:
@@ -68,8 +75,7 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
         except KeyboardInterrupt:
             print("interrupted! running test data now.")
             error = runTestData(nn,x_test,y_test,p_list[gbest])
-
-            if not quiet: print("RMSE=",error)
+            print("RMSE=",error)
             if stop_forever:
                 break
             else:
@@ -80,6 +86,6 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
 
     if explicit: print("Now using testing data set...")
     error = runTestData(nn,x_test,y_test,p_list[gbest])
-
+    saveToFile(nn,n_clusters,error)
     if not quiet: print("RMSE=",error)
     return error
