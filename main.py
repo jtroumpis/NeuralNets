@@ -5,12 +5,12 @@ import pso,sys, json
 from datetime import datetime
 import argparse
 
-def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
+def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
     errors = []
     if nn_type == 'prbf':
         # print("Starting Polynomial RBF...")
         for i in range(run):
-            errors.append(pso.PSO(x,y,iterations,n_clusters,quiet=quiet,explicit=expl))
+            errors.append(pso.PSO(data,iterations,n_clusters,quiet=quiet,explicit=expl))
 
         mean , std = getMeanSTD(errors)
         res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
@@ -20,7 +20,7 @@ def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
     elif nn_type == 'rbf':
         # print("Starting RBF swarm...")
         for i in range(run):
-            errors.append(pso.PSO(x,y,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl))
+            errors.append(pso.PSO(data,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl))
         mean , std = getMeanSTD(errors)
         res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
 
@@ -29,31 +29,31 @@ def selectNN(nn_type,run,x,y,iterations,n_clusters,quiet,expl):
 
     elif nn_type == 'ff':
         for i in range(run):
-            errors.append(pso.PSO(x,y,iterations,n_clusters,'ff',quiet=quiet,explicit=expl))
+            errors.append(pso.PSO(data,iterations,n_clusters,'ff',quiet=quiet,explicit=expl))
         mean , std = getMeanSTD(errors)
         res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
 
         with open('res.txt','a+') as f:
             json.dump(res, f)
 
-    elif nn_type == 'srbf':
-        for c in range(2,n_clusters):
-            for i in range(run):
-                errors.append(doTheNet(c,x,y))
-                mean , std = getMeanSTD(errors)
-            res = {'nn_type': nn_type, 'c': c, 'mean': mean, 'std': std}
-
-            with open('res.txt','a+') as f:
-                json.dump(res, f)
-    elif nn_type == 'sprbf':
-        for c in range(2,n_clusters):
-            for i in range(run):
-                errors.append(doThePolyNet(c,x,y))
-                mean , std = getMeanSTD(errors)
-            res = {'nn_type': nn_type, 'c': c, 'mean': mean, 'std': std}
-
-            with open('res.txt','a+') as f:
-                json.dump(res, f)
+    # elif nn_type == 'srbf':
+    #     for c in range(2,n_clusters):
+    #         for i in range(run):
+    #             errors.append(doTheNet(c,x,y))
+    #             mean , std = getMeanSTD(errors)
+    #         res = {'nn_type': nn_type, 'c': c, 'mean': mean, 'std': std}
+    #
+    #         with open('res.txt','a+') as f:
+    #             json.dump(res, f)
+    # elif nn_type == 'sprbf':
+    #     for c in range(2,n_clusters):
+    #         for i in range(run):
+    #             errors.append(doThePolyNet(c,x,y))
+    #             mean , std = getMeanSTD(errors)
+    #         res = {'nn_type': nn_type, 'c': c, 'mean': mean, 'std': std}
+    #
+    #         with open('res.txt','a+') as f:
+    #             json.dump(res, f)
     with open('res.txt','a+') as f:
         f.write('\n')
 
@@ -79,14 +79,25 @@ parser.add_argument('-g --AR_AGGR', action="store_false", dest='aa',
                     help='Does Arithmetic Aggregation')
 parser.add_argument('-f --FILE', action="store", dest='filename', default='data.csv',
                     help='Chooses the input file.')
-
+parser.add_argument('--TEST', action='store', dest='test_file', default=None,
+                    help='Chooses the test input file')
+parser.add_argument('--TRAIN', action='store', dest='train_file', default=None,
+                    help='Chooses the train input file')
 args = parser.parse_args()
 
-x, y = readCSV(args.filename,args.aa)
-x = np.asarray(x)
-y = np.asarray(y)
+if not args.train_file:
+    x, y = readCSV(args.filename,args.aa)
+    x = np.asarray(x)
+    y = np.asarray(y)
+    x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
 
-x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
+else:
+    x_train, y_train = readFromFile(args.train_file)
+    x_test, y_test = readFromFile(args.test_file)
+    x_train = np.asarray(x_train)
+    y_train = np.asarray(y_train)
+    x_test = np.asarray(x_test)
+    y_test = np.asarray(y_test)
 
 # printTestTrainToFile(x_test, x_train, y_test, y_train)
 # exit()
@@ -137,6 +148,6 @@ else:
 
 for nn in nn_list:
     for c in c_list:
-        selectNN(nn,args.run,x,y,args.iterations,c,args.quiet,args.explicit)
+        selectNN(nn,(x_train,y_train, x_test, y_test),args.run,args.iterations,c,args.quiet,args.explicit)
 
 # selectNN(args.nn,args.run,x,y,args.iterations,args.n_clusters,args.quiet,args.explicit)

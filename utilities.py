@@ -6,6 +6,16 @@ from utilities import *
 import numpy as np
 from numpy.linalg import inv
 
+def readFromFile(filename):
+    x = []
+    y = []
+    with open(filename, 'r') as f:
+        for line in f:
+            line = list(map(float, line.split(',')))
+            x.append(line[:-1])
+            y.append(line[len(line)-1])
+    return x,y
+
 def printToFile(filename,x,y):
     with open(filename,'w') as f:
         for i in range(len(x)):

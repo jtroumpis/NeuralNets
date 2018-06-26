@@ -22,8 +22,8 @@ def saveToFile(nn, n_clusters, error, testing=True):
         json.dump(d,f)
         f.write('\n')
 
-def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
-    x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
+def PSO(data,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
+    x_train,y_train, x_test, y_test = data
 
     inertia = random.uniform(0.5,1)
     p_list = []
