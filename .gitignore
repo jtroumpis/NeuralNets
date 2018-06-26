@@ -1,8 +1,11 @@
 *.csv
 *.pyc
 *.out
-
+*.json
 
 \.DS_Store
 
 res*.txt
+*.save.*
+*.zip
+*.xls*

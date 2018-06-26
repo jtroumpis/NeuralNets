@@ -6,19 +6,29 @@ from utilities import *
 import numpy as np
 from numpy.linalg import inv
 
-def convertToZeroToTone(x):
-    min_values = np.amin(x, axis=0)
-    max_values = np.amax(x, axis=1)
-    # for i in range(len(x[0])):
-    #     min_values.append( np.amin(x, axis=i))
-    #     max_values.append( np.amax(x, axis=i))
+def readFromFile(filename):
+    x = []
+    y = []
+    with open(filename, 'r') as f:
+        for line in f:
+            line = list(map(float, line.split(',')))
+            x.append(line[:-1])
+            y.append(line[len(line)-1])
+    return x,y
 
-    # print(min_values)
-    #
-    for i in range(len(x)):
-        for j in range(len(x[i])):
-            x[i][j] = (x[i][j] - min_values[j]) / (max_values[j] - min_values[j])
-    return x
+def printToFile(filename,x,y):
+    with open(filename,'w') as f:
+        for i in range(len(x)):
+            s = ""
+            for j in x[i]:
+                s += str(j) + ", "
+            s += str(y[i][0]) +'\n'
+            # print(y_train[i])
+            f.write(s)
+
+def printTestTrainToFile(x_test, x_train, y_test, y_train):
+    printToFile('data_train.csv',x_train,y_train)
+    printToFile('data_test.csv',x_test,y_test)
 
 def separateToTestTrain(factor, x, y):
     l = []
@@ -42,7 +52,7 @@ def separateToTestTrain(factor, x, y):
     return  x_test, x_train, y_test, y_train
 
 def isInput(s):
-    return 'input' in s
+    return not 'output' in s
 
 def addToNetDict(dictionary,key,value):
     try:
@@ -72,7 +82,11 @@ def calculateArithmeticProgression(net_dic,total):
     return net_list
     # return net_dic
 
-def readCSV(filename = 'data.csv', keep_this=None):
+
+
+def readCSV(filename = 'data_old.csv', aa=True, keep_this=None):
+    print(filename,aa)
+    doAA = aa
     x = []
     y = []
     net_in = {}
@@ -80,9 +94,10 @@ def readCSV(filename = 'data.csv', keep_this=None):
     total_sum_in = 0
     total_sum_out = 0
     with open(filename) as f:
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, delimiter=';')
 
         for row in reader:
+            # print(row)
             x_sub_list = []
             y_sub_list = []
             for key, value in row.items():
@@ -92,10 +107,10 @@ def readCSV(filename = 'data.csv', keep_this=None):
                     pass
                 except TypeError:
                     break
-
-                if 'net_in' in key:
+                #
+                if doAA and 'net_in' in key:
                     total_sum_in += addToNetDict(net_in,key,value)
-                elif 'net_out' in key:
+                elif doAA and 'net_out' in key:
                     total_sum_out += addToNetDict(net_out,key,value)
                 # elif key=='time' or 'tempFPGA' in key or 'ytempCPU'  in key:
                 elif key=='time'  in key:
@@ -105,7 +120,7 @@ def readCSV(filename = 'data.csv', keep_this=None):
                         # print(key)
                         x_sub_list.append(value)
                     else:
-                        # print(key)
+                        # print(key, value)
                         y_sub_list.append(value)
 
             x.append(x_sub_list)
@@ -116,11 +131,10 @@ def readCSV(filename = 'data.csv', keep_this=None):
 
         # print(net_in)
 
-        for i in range(len(x)):
-            x[i].append(net_in[i])
-            x[i].append(net_out[i])
-
-        x = convertToZeroToTone(x)
+        if doAA:
+            for i in range(len(x)):
+                x[i].append(net_in[i])
+                x[i].append(net_out[i])
         return x, y
 
 # Calculates the distance ||x-center||
@@ -177,13 +191,15 @@ def gaussianMatrix(x,centers,sigma_array):
 
 # Calculate root mean error
 def rootMeanError(error_array):
+    # print(error_array)
     souma = 0
     for i in error_array:
         souma += i**2
 
     return math.sqrt(souma/len(error_array))
 
-def calculateWeightsPolynomial(lamda,n_clusters,G,y,centers,sigma_array,p):
+def calculateWeightsPolynomial(G,y,centers,sigma_array,p,lamda):
+    n_clusters = len(centers)
     gamma = lamda * np.identity(n_clusters*(p+1))
 
     gtg = G.transpose().dot(G)
@@ -195,9 +211,10 @@ def calculateWeightsPolynomial(lamda,n_clusters,G,y,centers,sigma_array,p):
         raise np.linalg.linalg.LinAlgError
 
     temp = inversed.dot(G.transpose())
+    # print(temp.shape, y.shape)
     W = temp.dot(y)
 
-    # print("W=",W)
+    # print(W.shape)
 
     return W
 
