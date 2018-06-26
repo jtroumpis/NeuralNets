@@ -85,7 +85,7 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
     if explicit: print("gbest = ", p_list[gbest].getPBest()[0])
 
     if explicit: print("Now using testing data set...")
-    error_test, error_train = runTestData(nn,x_test,y_test,p_list[gbest])
+    error = runTestData(nn,x_test,y_test,p_list[gbest])
     saveToFile(nn,n_clusters,p_list[gbest].getPBest()[0],testing=False)
     saveToFile(nn,n_clusters,error,testing=True)
     if not quiet: print("RMSE=",error)

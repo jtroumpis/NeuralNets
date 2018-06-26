@@ -6,6 +6,20 @@ from utilities import *
 import numpy as np
 from numpy.linalg import inv
 
+def printToFile(filename,x,y):
+    with open(filename,'w') as f:
+        for i in range(len(x)):
+            s = ""
+            for j in x[i]:
+                s += str(j) + ", "
+            s += str(y[i][0]) +'\n'
+            # print(y_train[i])
+            f.write(s)
+
+def printTestTrainToFile(x_test, x_train, y_test, y_train):
+    printToFile('data_train.csv',x_train,y_train)
+    printToFile('data_test.csv',x_test,y_test)
+
 def separateToTestTrain(factor, x, y):
     l = []
     for i in range(len(x)):
@@ -70,9 +84,10 @@ def readCSV(filename = 'data_old.csv', aa=True, keep_this=None):
     total_sum_in = 0
     total_sum_out = 0
     with open(filename) as f:
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, delimiter=';')
 
         for row in reader:
+            # print(row)
             x_sub_list = []
             y_sub_list = []
             for key, value in row.items():
@@ -95,7 +110,7 @@ def readCSV(filename = 'data_old.csv', aa=True, keep_this=None):
                         # print(key)
                         x_sub_list.append(value)
                     else:
-                        # print(key)
+                        # print(key, value)
                         y_sub_list.append(value)
 
             x.append(x_sub_list)

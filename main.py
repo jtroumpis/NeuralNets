@@ -79,20 +79,27 @@ parser.add_argument('-g --AR_AGGR', action="store_false", dest='aa',
                     help='Does Arithmetic Aggregation')
 parser.add_argument('-f --FILE', action="store", dest='filename', default='data.csv',
                     help='Chooses the input file.')
+
 args = parser.parse_args()
 
 x, y = readCSV(args.filename,args.aa)
 x = np.asarray(x)
 y = np.asarray(y)
 
+x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
+
+# printTestTrainToFile(x_test, x_train, y_test, y_train)
+# exit()
 # with open('new_out.csv','w') as f:
-#     for i in range(len(x)):
+#     for i in range(len(x_train)):
 #         s = ""
-#         for j in x[i]:
+#         for j in x_train[i]:
 #             s += str(j) + ", "
-#         s += str(y[i][0]) +'\n'
-#         print(y[i])
+#         s += str(y_train[i][0]) +'\n'
+#         # print(y_train[i])
 #         f.write(s)
+
+
 
 iterations = args.iterations
 n_clusters = args.n_clusters
