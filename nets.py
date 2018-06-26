@@ -1,4 +1,5 @@
 from utilities import *
+import json
 
 def doTheNet(n_clusters,x,y, lamda=1):
     x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
@@ -111,6 +112,11 @@ def feedForward(x,y, n_clusters,a,b):
 
     return rootMeanError(errors)
     # print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(errors)))
+
+def save(centers,sigmas,W):
+
+    with open('net.var','w') as f:
+        json.dump({'centers': centers, 'sigmas': sigmas, 'weights': W},f)
 
 
 if __name__ == "__main__":
