@@ -1,11 +1,29 @@
 from Particle import Particle, Full_Particle, FFParticle
 from utilities import *
 from nets import *
-import random
+import random, json
 lamda = 1
 
-def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
-    x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
+def runTestData(nn,x_test, y_test, pbest):
+    pbest.setPositionToBest()
+
+    # if explicit: print("Now using testing data set...")
+    if nn=='prbf':
+        error = particlePolyRBF(x_test,y_test,pbest.getCenters(),pbest.getSigmas())
+    elif nn=='rbf':
+        error = particleNet(x_test,y_test,pbest.getCenters(),pbest.getSigmas(),pbest.getW())
+    elif nn=='ff':
+        error = feedForward(x_test,y_test,pbest.n_clusters,pbest.getA(),pbest.getB())
+    return error
+
+def saveToFile(nn, n_clusters, error, testing=True):
+    d = {'nn': nn, 'c': n_clusters, 'error': error, 'testing': testing}
+    with open('complete_res.json', 'a+') as f:
+        json.dump(d,f)
+        f.write('\n')
+
+def PSO(data,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
+    x_train,y_train, x_test, y_test = data
 
     inertia = random.uniform(0.5,1)
     p_list = []
@@ -36,34 +54,40 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
             # print("New gbest = ", gbest)
     if explicit: print("Staring gbest = ", p_list[gbest].getPBest()[0])
     if explicit: print("Starting the swarming")
+    stop_forever = False
     for i in range(iterations):
-        if not quiet: print("Iteration",i)
-        c=0
-        for p in p_list:
-            pbest, to_print, fitness = p.update(p_list[gbest].getPBest())
 
+        try:
+            if not quiet: print("Iteration",i)
+            c=0
+            for p in p_list:
+                pbest, to_print, fitness = p.update(p_list[gbest].getPBest())
 
-            if not quiet and to_print:
-                print("Particle[%d] - New pBest: %f" % (c,pbest[0]))
-            elif explicit:
-                print("Particle[%d] - Fitness: %f - pBest: %f" % (c,fitness,pbest[0]))
-            if  pbest[0] < p_list[gbest].getPBest()[0]:
-                gbest = c
-                print("Iteration[%d] New gbest = %s" % (i,p_list[gbest].getPBest()[0]))
-            c+=1
+                if not quiet and to_print:
+                    print("Particle[%d] - New pBest: %f" % (c,pbest[0]))
+                elif explicit:
+                    print("Particle[%d] - Fitness: %f - pBest: %f" % (c,fitness,pbest[0]))
+                if  pbest[0] < p_list[gbest].getPBest()[0]:
+                    gbest = c
+                    print("Iteration[%d] New gbest = %s" % (i,p_list[gbest].getPBest()[0]))
+                c+=1
+            stop_forever = False
+        except KeyboardInterrupt:
+            print("interrupted! running test data now.")
+            error = runTestData(nn,x_test,y_test,p_list[gbest])
+            print("RMSE=",error)
+            if stop_forever:
+                break
+            else:
+                stop_forever = True
+
     if explicit: print("Finished!")
     if explicit: print("gbest = ", p_list[gbest].getPBest()[0])
 
-    pbest = p_list[gbest]
-    pbest.setPositionToBest()
-
     if explicit: print("Now using testing data set...")
-    if nn=='prbf':
-        error = particlePolyRBF(x_test,y_test,pbest.getCenters(),pbest.getSigmas())
-    elif nn=='rbf':
-        error = particleNet(x_test,y_test,pbest.getCenters(),pbest.getSigmas(),pbest.getW())
-    elif nn=='ff':
-        error = feedForward(x_test,y_test,n_clusters,pbest.getA(),pbest.getB())
-
+    error = runTestData(nn,x_test,y_test,p_list[gbest])
+    saveToFile(nn,n_clusters,p_list[gbest].getPBest()[0],testing=False)
+    saveToFile(nn,n_clusters,error,testing=True)
+    save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
     if not quiet: print("RMSE=",error)
     return error

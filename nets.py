@@ -1,4 +1,5 @@
 from utilities import *
+import json
 
 def doTheNet(n_clusters,x,y, lamda=1):
     x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
@@ -50,23 +51,51 @@ def doThePolyNet(n_clusters,x,y, lamda=1):
     print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(error)))
     return rootMeanError(error)
 
-def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1):
+def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1000):
     # x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
     # print(sigmas.shape)
+    y = np.asarray(y)
     try:
         # Needed for reasons...
+
         W = W.reshape(len(W),1)
+        print("HI")
     except:
         L = calculateLAMDA(x,centers,sigmas)
-        W = calculateWeightsPolynomial(lamda,len(centers),L,y,centers, sigmas, len(x[0]))
+        try:
+            W = calculateWeightsPolynomial(L, y, centers, sigmas, len(x[0]), lamda)
+        except np.linalg.linalg.LinAlgError:
+            raise np.linalg.linalg.LinAlgError
 
-    # print(L.shape)
-    # test_L = calculateLAMDA(x_test,centers,sigmas)
-    Y = L.dot(W)
+    # print(W.shape)
+    # print(W[2])
+    Y=[]
+    for n in range(len(x)):
+        index = 0
+        souma = 0
+        for c in range(len(centers)):
+            g = gaussianFunction(x[n],centers[c],sigmas[c])
+            # print(g,index,len(x[0]))
+            # print(index)
+            factor = W[index]
+            temp_s = 0
+            for j in range(len(x[0])):
+                # print(len(x[0]))
+                index += 1
+                temp_s += W[index]*x[n][j]
+            index += 1
+            souma += g * (factor + temp_s)
+        Y.extend(souma)
+
+    # print(y.shape)
+
+    Y = np.asarray(Y)
     # print(Y.shape)
-    error = np.subtract(y,Y)
+    Y = Y.reshape(len(Y),1)
 
-    # print("rootMeanError for c=%d: %f" %(len(centers),rootMeanError(error)))
+    # Y = Y.transpose()
+    error = np.subtract(y,Y)
+    # print(error.shape)
     return rootMeanError(error)
 
 
@@ -83,6 +112,11 @@ def feedForward(x,y, n_clusters,a,b):
 
     return rootMeanError(errors)
     # print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(errors)))
+
+def save(centers,sigmas,W):
+
+    with open('net.var','w') as f:
+        json.dump({'centers': centers, 'sigmas': sigmas, 'weights': W},f)
 
 
 if __name__ == "__main__":

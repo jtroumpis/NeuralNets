@@ -18,8 +18,8 @@ class Particle():
 
         self.position.extend(self.initCenters(n_clusters,x_min,x_max))
         self.vel.extend(self.initCenters(n_clusters,x_min,x_max))
-        self.position.extend(self.initSigmas(n_clusters,1000000,1000000000))
-        self.vel.extend(self.initSigmas(n_clusters,1000000,1000000000))
+        self.position.extend(self.initSigmas(n_clusters,10000000,100000000))
+        self.vel.extend(self.initSigmas(n_clusters,10000000,100000000))
 
         self.pbest = (self.net(x,y,self.getCenters(),self.getSigmas()),list(self.position))
 
@@ -100,7 +100,10 @@ class Particle():
         self.updateVelocity(gBest)
 
         # print(self.vel)
-        fitness = self.net(self.x,self.y,self.getCenters(),self.getSigmas())
+        try:
+            fitness = self.net(self.x,self.y,self.getCenters(),self.getSigmas())
+        except np.linalg.linalg.LinAlgError:
+            fitness = self.pbest[0]
         # print(fitness)
 
         return self.checkPBest(fitness)
@@ -135,7 +138,7 @@ class Full_Particle(Particle):
     def initW(self,n_clusters):
         pos = []
         for c in range(n_clusters):
-            pos.append(random.uniform(0,1))
+            pos.append(random.uniform(-1,1))
         return pos
 
     def getW(self):
@@ -169,11 +172,11 @@ class FFParticle(Particle):
         #Initialise position
         # This is the As
         for j in range(n_clusters):
-            self.position.extend([random.uniform(-100, 100) for _ in range(self.p)])
-            self.vel.extend([random.uniform(-100, 100) for _ in range(self.p)])
+            self.position.extend([random.uniform(-0.5, 0.5) for _ in range(self.p)])
+            self.vel.extend([random.uniform(-0.5, 0.5) for _ in range(self.p)])
         # This is the Bs
-        self.position.extend([random.uniform(-100, 100) for _ in range(n_clusters)])
-        self.vel.extend([random.uniform(-100, 100) for _ in range(n_clusters)])
+        self.position.extend([random.uniform(-0.5, 0.5) for _ in range(n_clusters)])
+        self.vel.extend([random.uniform(-0.5, 0.5) for _ in range(n_clusters)])
 
         self.pbest = (feedForward(x,y,self.n_clusters,self.getA(),self.getB()),list(self.position))
 
