@@ -88,5 +88,6 @@ def PSO(x,y,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
     error = runTestData(nn,x_test,y_test,p_list[gbest])
     saveToFile(nn,n_clusters,p_list[gbest].getPBest()[0],testing=False)
     saveToFile(nn,n_clusters,error,testing=True)
+    save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
     if not quiet: print("RMSE=",error)
     return error
