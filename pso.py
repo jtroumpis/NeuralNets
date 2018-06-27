@@ -88,7 +88,7 @@ def evolution(data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,qui
     # save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
     if not quiet: print("RMSE=",error)
     print("Finished %s (c=%d)" % (nn,n_clusters))
-    return error
+    return error, p_list[gbest].pbest
 
 def PSO(data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
     x_train,y_train, x_test, y_test = data
