@@ -142,6 +142,7 @@ def calcDistance(x,center):
     # print(len(x))
     dist = 0
     for j in range(0,len(x)):
+        # print(x[j], center[j])
         dist += math.pow(x[j] - center[j],2)
     return math.sqrt(dist)
 
@@ -183,7 +184,9 @@ def gaussianMatrix(x,centers,sigma_array):
     gaussian_array = []
     for n in range(len(x)):
         small_g = []
+        # print(centers)
         for i in range(len(centers)):
+            # print(centers[i])
             g = gaussianFunction(x[n], centers[i], sigma_array[i])
             small_g.append(g)
         gaussian_array.append(small_g)

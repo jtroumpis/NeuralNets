@@ -22,11 +22,15 @@ def doTheNet(n_clusters,x,y, lamda=1):
 
 def particleNet(x, y, centers, sigma_array, W, lamda=1):
     # x_test, x_train, y_test, y_train = separateToTestTrain(0.4,x,y)
-
+    # print(centers)
     G = gaussianMatrix(x,centers,sigma_array)
     W = W.reshape(len(W),1)
     Y = G.dot(W)
+    # print(Y)
+    y = y.reshape(len(y),1)
+    # print(y)
     error = np.subtract(y,Y)
+    # print(error.shape)
 
     return rootMeanError(error)
 
@@ -85,14 +89,14 @@ def particlePolyRBF(x, y, centers, sigmas, W=None, lamda=1000):
                 temp_s += W[index]*x[n][j]
             index += 1
             souma += g * (factor + temp_s)
-        Y.extend(souma)
+        Y.append(souma)
 
     # print(y.shape)
 
-    Y = np.asarray(Y)
+    # Y = np.asarray(Y)
+    #
+    # Y = Y.reshape(len(Y),1)
     # print(Y.shape)
-    Y = Y.reshape(len(Y),1)
-
     # Y = Y.transpose()
     error = np.subtract(y,Y)
     # print(error.shape)
