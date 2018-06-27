@@ -22,7 +22,7 @@ def saveToFile(nn, n_clusters, error, testing=True):
         json.dump(d,f)
         f.write('\n')
 
-def PSO(data,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
+def PSO(data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
     x_train,y_train, x_test, y_test = data
 
     inertia = random.uniform(0.5,1)
@@ -56,14 +56,6 @@ def PSO(data,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fa
     if explicit: print("Starting the swarming")
     stop_forever = False
     for i in range(iterations):
-        if not quiet:
-            print("Iteration",i)
-        elif i%100==0:
-            print("Iteration", i)
-        c=0
-        for p in p_list:
-            pbest, to_print, fitness = p.update(p_list[gbest].getPBest())
-
         try:
             if not quiet: print("Iteration",i)
             c=0
@@ -95,7 +87,7 @@ def PSO(data,iterations=1000,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fa
     error = runTestData(nn,x_test,y_test,p_list[gbest])
     saveToFile(nn,n_clusters,p_list[gbest].getPBest()[0],testing=False)
     saveToFile(nn,n_clusters,error,testing=True)
-    save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
+    # save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
     if not quiet: print("RMSE=",error)
     print("Finished %s (c=%d)" % (nn,n_clusters))
-    return error
+    return error, p_list[gbest].getPBest()[0]

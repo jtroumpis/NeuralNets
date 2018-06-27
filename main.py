@@ -6,7 +6,8 @@ from datetime import datetime
 import argparse
 
 def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
-    errors = []
+    errors_test = []
+    errors_train = []
     if nn_type == 'prbf':
         # print("Starting Polynomial RBF...")
         for i in range(run):
@@ -20,8 +21,10 @@ def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
     elif nn_type == 'rbf':
         # print("Starting RBF swarm...")
         for i in range(run):
-            errors.append(pso.PSO(data,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl))
-        mean , std = getMeanSTD(errors)
+            test_error, train_error = pso.PSO(data,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl)
+            errors_test.append(test_error)
+            errors_train.append(train_error)
+        mean , std = getMeanSTD(errors_test)
         res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
 
         with open('res.txt','a+') as f:
@@ -29,12 +32,20 @@ def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
 
     elif nn_type == 'ff':
         for i in range(run):
-            errors.append(pso.PSO(data,iterations,n_clusters,'ff',quiet=quiet,explicit=expl))
-        mean , std = getMeanSTD(errors)
-        res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
+            test_error, train_error = pso.PSO(data,iterations,n_clusters,'ff',quiet=quiet,explicit=expl)
+            errors_test.append(test_error)
+            errors_train.append(train_error)
+
+        mean , std = getMeanSTD(errors_test)
+        res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': True}
+
+        mean , std = getMeanSTD(errors_train)
+        res_train = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': False}
 
         with open('res.txt','a+') as f:
             json.dump(res, f)
+            f.write('\n')
+            json.dump(res_train, f)
 
     # elif nn_type == 'srbf':
     #     for c in range(2,n_clusters):

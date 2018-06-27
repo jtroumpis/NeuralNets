@@ -114,9 +114,24 @@ def feedForward(x,y, n_clusters,a,b):
     # print("rootMeanError for c=%d: %f" %(n_clusters,rootMeanError(errors)))
 
 def save(centers,sigmas,W):
+    c_write = []
+    for i in centers:
+        temp= []
+        for j in i:
+            temp.append(j)
+        c_write.append(temp)
+
+    s_write = []
+    for i in sigmas:
+        s_write.append(i)
+
+    w_write = []
+    print(W)
+    for i in W:
+        w_write.append(i)
 
     with open('net.var','w') as f:
-        json.dump({'centers': centers, 'sigmas': sigmas, 'weights': W},f)
+        json.dump({'centers': c_write, 'sigmas': s_write, 'weights':w_write},f)
 
 
 if __name__ == "__main__":
