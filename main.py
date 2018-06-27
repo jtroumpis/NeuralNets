@@ -4,6 +4,7 @@ import numpy as np
 import pso,sys, json
 from datetime import datetime
 import argparse
+from mail import sendMail
 
 def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
     errors_test = []
@@ -152,7 +153,7 @@ with open('res.txt','a+') as f:
     f.write(str(datetime.now())+'\n')
 
 if args.all:
-    nn_list = ['prbf','rbf','ff']
+    nn_list = ['rbf','ff']
     c_list = [3,4,5,6,7,8,9,10,11]
 
 if args.nn!='':
@@ -168,5 +169,10 @@ else:
 for nn in nn_list:
     for c in c_list:
         selectNN(nn,(x_train,y_train, x_test, y_test),args.run,args.iterations,c,args.quiet,args.explicit)
-
+        subj = 'Finished %s' % (nn)
+        attach = ['/Users/jtroumpis/programming/neuralnet/res.txt',
+        '/Users/jtroumpis/programming/neuralnet/complete_res.json']
+        with open('res.txt', 'r') as f:
+            message = f.read()
+        sendMail(subj,attach,message)
 # selectNN(args.nn,args.run,x,y,args.iterations,args.n_clusters,args.quiet,args.explicit)
