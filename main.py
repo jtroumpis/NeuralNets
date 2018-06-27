@@ -20,7 +20,7 @@ def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
     elif nn_type == 'rbf':
         # print("Starting RBF swarm...")
         for i in range(run):
-            errors.append(pso.PSO(data,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl))
+            errors.append(pso.evolution(data,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl))
         mean , std = getMeanSTD(errors)
         res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
 
@@ -95,9 +95,11 @@ else:
     x_train, y_train = readFromFile(args.train_file)
     x_test, y_test = readFromFile(args.test_file)
     x_train = np.asarray(x_train)
+    # print(x_train)
     y_train = np.asarray(y_train)
     x_test = np.asarray(x_test)
     y_test = np.asarray(y_test)
+    # print(x_train.shape,y_train.shape)
 
 # printTestTrainToFile(x_test, x_train, y_test, y_train)
 # exit()
