@@ -12,13 +12,20 @@ def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
     if nn_type == 'prbf':
         # print("Starting Polynomial RBF...")
         for i in range(run):
-            errors.append(pso.PSO(data,iterations,n_clusters,quiet=quiet,explicit=expl))
+            test_error, train_error = (pso.PSO(data,iterations,n_clusters,quiet=quiet,explicit=expl))
+            errors_test.append(test_error)
+            errors_train.append(train_error)
+        mean , std = getMeanSTD(errors_test)
+        res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': True}
 
-        mean , std = getMeanSTD(errors)
-        res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std}
+        mean , std = getMeanSTD(errors_train)
+        res_train = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': False}
 
         with open('res.txt','a+') as f:
             json.dump(res, f)
+            f.write('\n')
+            json.dump(res_train, f)
+
     elif nn_type == 'rbf':
         # print("Starting RBF swarm...")
         for i in range(run):
@@ -152,14 +159,15 @@ if args.select:
 with open('res.txt','a+') as f:
     f.write(str(datetime.now())+'\n')
 
+if args.nn!='':
+    nn_list = [args.nn]
+else:
+    nn_list = ['wekjgbwe']
+
 if args.all:
     nn_list = ['rbf','ff']
     c_list = [3,4,5,6,7,8,9,10,11]
 
-if args.nn!='':
-    nn_list = [args.nn]
-else:
-    nn_list = ['prbf']
 
 if args.n_clusters>0:
     c_list = [args.n_clusters]
@@ -169,10 +177,10 @@ else:
 for nn in nn_list:
     for c in c_list:
         selectNN(nn,(x_train,y_train, x_test, y_test),args.run,args.iterations,c,args.quiet,args.explicit)
-        subj = 'Finished %s' % (nn)
-        attach = ['/Users/jtroumpis/programming/neuralnet/res.txt',
-        '/Users/jtroumpis/programming/neuralnet/complete_res.json']
-        with open('res.txt', 'r') as f:
-            message = f.read()
-        sendMail(subj,attach,message)
+    subj = 'Finished %s' % (nn)
+    attach = ['/home/jtroumpis/Programming/neuralnet/res.txt',
+    '/home/jtroumpis/Programming/neuralnet/complete_res.json']
+    with open('res.txt', 'r') as f:
+        message = f.read()
+    sendMail(subj,attach,message)
 # selectNN(args.nn,args.run,x,y,args.iterations,args.n_clusters,args.quiet,args.explicit)
