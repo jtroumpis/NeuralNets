@@ -9,3 +9,5 @@ res*.txt
 *.save.*
 *.zip
 *.xls*
+
+datasets/
