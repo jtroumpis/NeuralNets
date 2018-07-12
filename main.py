@@ -6,6 +6,16 @@ from datetime import datetime
 import argparse
 from mail import sendMail
 
+def save_state(data_file,nn,c,r,i):
+    settings = {'c_list': c, 'nn_list': nn, 'r': r, 'i': i}
+    with open('save.dat', 'w') as f:
+        f.write(json.dumps(settings)+'\n')
+        for data_file in file_list:
+            try:
+                f.write(data_file['name']+', '+str(data_file['done'])+'\n')
+            except KeyError:
+                f.write(data_file['name']+', '+str(False)+'\n')
+
 def create_JSON_output(name,nn_type,n_clusters,train,test):
     mean , std = getMeanSTD(test)
     res = {'name': name, 'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'run_type': 'Testing'}
@@ -94,9 +104,31 @@ parser.add_argument('--TRAIN', action='store', dest='train_file', default=None,
                     help='Chooses the train input file')
 parser.add_argument('--FILE_LIST', action='store', dest='file_list', default=None,
                     help='Reads a number of different input files.')
+parser.add_argument('-l --LOAD', action='store', dest='load_list', default=None,
+                    help='Loads previous work.')
+# parser.add_argument('--RESET', action='store_true', dest='reset', default=False,
+#                     help='Reads a number of different input files.')
 args = parser.parse_args()
-
+settings=None
 file_list = []
+if (args.load_list):
+    with open(args.load_list,'r') as f:
+        first = f.readline()
+        settings = json.loads(first)
+        for line in f:
+            line = line.split(',')
+            # print(line[1])
+            if 'True' in (line[1]):
+                # print(line[0])
+                continue
+            file = line[0]
+            file_tile = file.split('/')[-1].strip()
+            file_list.append({'name':file_tile, 'train': file.strip()+'_train.csv', 'test':file.strip()+'_test.csv'})
+
+    print(file_list)
+
+# exit()
+
 if args.file_list:
     with open(args.file_list,'r') as f:
         for file in f:
@@ -174,15 +206,22 @@ if args.n_clusters>0:
 else:
     c_list = [2,4,6,8,10,12]
 
+if settings:
+    nn_list = settings['nn_list']
+    c_list = setting['c_list']
+    args.run = settings['r']
+    args.iterations = settings['i']
 
 for data_file in file_list:
     for nn in nn_list:
         for c in c_list:
-            selectNN(filename['name'],nn,(filename['x_train'],filename['y_train'], filename['x_test'], filename['y_test']),args.run,args.iterations,c,args.quiet,args.explicit)
-        subj = 'Finished %s of %s' % (nn, data_file['test'])
+            selectNN(data_file['name'],nn,(filename['x_train'],filename['y_train'], filename['x_test'], filename['y_test']),args.run,args.iterations,c,args.quiet,args.explicit)
+        subj = '[NN] Finished %s of %s' % (nn, data_file['test'])
         attach = ['/home/jtroumpis/Programming/neuralnet/res.txt',
         '/home/jtroumpis/Programming/neuralnet/complete_res.json']
         with open('res.txt', 'r') as f:
             message = f.read()
-        sendMail(subj,attach,message)
+        # sendMail(subj,attach,message)
+        data_file['done'] = True
+        save_state(file_list,nn_list,c_list,args.run,args.iterations)
 # selectNN(args.nn,args.run,x,y,args.iterations,args.n_clusters,args.quiet,args.explicit)
