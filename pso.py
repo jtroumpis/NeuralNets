@@ -16,13 +16,13 @@ def runTestData(nn,x_test, y_test, pbest):
         error = feedForward(x_test,y_test,pbest.n_clusters,pbest.getA(),pbest.getB())
     return error
 
-def saveToFile(nn, n_clusters, error, testing=True):
-    d = {'nn': nn, 'c': n_clusters, 'error': error, 'testing': testing}
+def saveToFile(name,nn, n_clusters, error, testing=True):
+    d = {'name': name, 'nn': nn, 'c': n_clusters, 'error': error, 'testing': testing}
     with open('complete_res.json', 'a+') as f:
         json.dump(d,f)
         f.write('\n')
 
-def evolution(data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
+def evolution(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
     x_train,y_train, x_test, y_test = data
     p_list = []
     gbest = 0
@@ -82,15 +82,15 @@ def evolution(data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,qui
     if explicit: print("gbest = ", p_list[gbest].pbest)
 
     if explicit: print("Now using testing data set...")
-    saveToFile(nn,n_clusters,p_list[gbest].pbest,testing=False)
+    saveToFile(name,nn,n_clusters,p_list[gbest].pbest,testing=False)
     error = runTestData(nn,x_test,y_test,p_list[gbest])
-    saveToFile(nn,n_clusters,error,testing=True)
+    saveToFile(name,nn,n_clusters,error,testing=True)
     # save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
     if not quiet: print("RMSE=",error)
     print("Finished %s (c=%d)" % (nn,n_clusters))
     return error, p_list[gbest].pbest
 
-def PSO(data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
+def PSO(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
     x_train,y_train, x_test, y_test = data
 
     inertia = random.uniform(0.5,1)
@@ -153,8 +153,8 @@ def PSO(data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quiet=Fal
 
     if explicit: print("Now using testing data set...")
     error = runTestData(nn,x_test,y_test,p_list[gbest])
-    saveToFile(nn,n_clusters,p_list[gbest].getPBest()[0],testing=False)
-    saveToFile(nn,n_clusters,error,testing=True)
+    saveToFile(name,nn,n_clusters,p_list[gbest].getPBest()[0],testing=False)
+    saveToFile(name,nn,n_clusters,error,testing=True)
     # save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
     if not quiet: print("RMSE=",error)
     print("Finished %s (c=%d)" % (nn,n_clusters))

@@ -11,3 +11,5 @@ res*.txt
 *.xls*
 
 datasets/
+
+input\.txt

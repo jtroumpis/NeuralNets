@@ -6,60 +6,46 @@ from datetime import datetime
 import argparse
 from mail import sendMail
 
-def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
+def create_JSON_output(name,nn_type,n_clusters,train,test):
+    mean , std = getMeanSTD(test)
+    res = {'name': name, 'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'run_type': 'Testing'}
+
+    mean , std = getMeanSTD(train)
+    res_train = {'name': name, 'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'run_type': 'Training'}
+
+    with open('res.txt','a+') as f:
+        json.dump(res, f)
+        f.write('\n')
+        json.dump(res_train, f)
+        f.write('\n')
+
+def selectNN(name,nn_type, data,run,iterations,n_clusters,quiet,expl):
     errors_test = []
     errors_train = []
     if nn_type == 'prbf':
         # print("Starting Polynomial RBF...")
         for i in range(run):
-            test_error, train_error = (pso.PSO(data,iterations,n_clusters,quiet=quiet,explicit=expl))
+            test_error, train_error = (pso.PSO(name,data,iterations,n_clusters,quiet=quiet,explicit=expl))
             errors_test.append(test_error)
             errors_train.append(train_error)
-        mean , std = getMeanSTD(errors_test)
-        res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': True}
-
-        mean , std = getMeanSTD(errors_train)
-        res_train = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': False}
-
-        with open('res.txt','a+') as f:
-            json.dump(res, f)
-            f.write('\n')
-            json.dump(res_train, f)
+        create_JSON_output(name,nn_type,n_clusters,errors_train,errors_test)
 
     elif nn_type == 'rbf':
         # print("Starting RBF swarm...")
         for i in range(run):
-            test_error, train_error = pso.evolution(data,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl)
+            test_error, train_error = pso.evolution(name,data,iterations,n_clusters,'rbf',quiet=quiet,explicit=expl)
             errors_test.append(test_error)
             errors_train.append(train_error)
 
-        mean , std = getMeanSTD(errors_test)
-        res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': True}
-
-        mean , std = getMeanSTD(errors_train)
-        res_train = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': False}
-
-        with open('res.txt','a+') as f:
-            json.dump(res, f)
-            f.write('\n')
-            json.dump(res_train, f)
+        create_JSON_output(name,nn_type,n_clusters,errors_train,errors_test)
 
     elif nn_type == 'ff':
         for i in range(run):
-            test_error, train_error = pso.PSO(data,iterations,n_clusters,'ff',quiet=quiet,explicit=expl)
+            test_error, train_error = pso.PSO(name,data,iterations,n_clusters,'ff',quiet=quiet,explicit=expl)
             errors_test.append(test_error)
             errors_train.append(train_error)
 
-        mean , std = getMeanSTD(errors_test)
-        res = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': True}
-
-        mean , std = getMeanSTD(errors_train)
-        res_train = {'nn_type': nn_type, 'c': n_clusters, 'mean': mean, 'std': std, 'testing': False}
-
-        with open('res.txt','a+') as f:
-            json.dump(res, f)
-            f.write('\n')
-            json.dump(res_train, f)
+        create_JSON_output(name,nn_type,n_clusters,errors_train,errors_test)
 
     # elif nn_type == 'srbf':
     #     for c in range(2,n_clusters):
@@ -79,8 +65,6 @@ def selectNN(nn_type, data,run,iterations,n_clusters,quiet,expl):
     #
     #         with open('res.txt','a+') as f:
     #             json.dump(res, f)
-    with open('res.txt','a+') as f:
-        f.write('\n')
 
 parser = argparse.ArgumentParser(description='Welcome my friend.')
 
@@ -108,23 +92,39 @@ parser.add_argument('--TEST', action='store', dest='test_file', default=None,
                     help='Chooses the test input file')
 parser.add_argument('--TRAIN', action='store', dest='train_file', default=None,
                     help='Chooses the train input file')
+parser.add_argument('--FILE_LIST', action='store', dest='file_list', default=None,
+                    help='Reads a number of different input files.')
 args = parser.parse_args()
 
-if not args.train_file:
-    x, y = readCSV(args.filename,args.aa)
-    x = np.asarray(x)
-    y = np.asarray(y)
-    x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
+file_list = []
+if args.file_list:
+    with open(args.file_list,'r') as f:
+        for file in f:
+            file_tile = file.split('/')[-1].strip()
+            file_list.append({'name':file_tile, 'train': file.strip()+'_train.csv', 'test':file.strip()+'_test.csv'})
 
+    print(file_list)
 else:
-    x_train, y_train = readFromFile(args.train_file)
-    x_test, y_test = readFromFile(args.test_file)
-    x_train = np.asarray(x_train)
+    if not args.train_file:
+        x, y = readCSV(args.filename,args.aa)
+        x = np.asarray(x)
+        y = np.asarray(y)
+        x_test, x_train, y_test, y_train = separateToTestTrain(0.6,x,y)
+
+    else:
+        file_tile = args.train_file.split('.')[-2]
+        file_list.append({'name':file_tile, 'train': args.train_file, 'test':args.test_file})
+for filename in file_list:
+    x_train, y_train = readFromFile(filename['train'])
+    x_test, y_test = readFromFile(filename['test'])
+    # x_train = np.asarray(x_train)
     # print(x_train)
-    y_train = np.asarray(y_train)
-    x_test = np.asarray(x_test)
-    y_test = np.asarray(y_test)
-    # print(x_train.shape,y_train.shape)
+    filename['x_train'] = np.asarray(x_train)
+    filename['y_train'] = np.asarray(y_train)
+    filename['x_test'] = np.asarray(x_test)
+    filename['y_test'] = np.asarray(y_test)
+
+        # print(x_train.shape,y_train.shape)
 
 # printTestTrainToFile(x_test, x_train, y_test, y_train)
 # exit()
@@ -162,7 +162,7 @@ with open('res.txt','a+') as f:
 if args.nn!='':
     nn_list = [args.nn]
 else:
-    nn_list = ['wekjgbwe']
+    nn_list = ['rbf']
 
 if args.all:
     nn_list = ['rbf','ff']
@@ -172,15 +172,17 @@ if args.all:
 if args.n_clusters>0:
     c_list = [args.n_clusters]
 else:
-    c_list = [3,4,5,6,7,8,9,10,11]
+    c_list = [2,4,6,8,10,12]
 
-for nn in nn_list:
-    for c in c_list:
-        selectNN(nn,(x_train,y_train, x_test, y_test),args.run,args.iterations,c,args.quiet,args.explicit)
-    subj = 'Finished %s' % (nn)
-    attach = ['/home/jtroumpis/Programming/neuralnet/res.txt',
-    '/home/jtroumpis/Programming/neuralnet/complete_res.json']
-    with open('res.txt', 'r') as f:
-        message = f.read()
-    sendMail(subj,attach,message)
+
+for data_file in file_list:
+    for nn in nn_list:
+        for c in c_list:
+            selectNN(filename['name'],nn,(filename['x_train'],filename['y_train'], filename['x_test'], filename['y_test']),args.run,args.iterations,c,args.quiet,args.explicit)
+        subj = 'Finished %s of %s' % (nn, data_file['test'])
+        attach = ['/home/jtroumpis/Programming/neuralnet/res.txt',
+        '/home/jtroumpis/Programming/neuralnet/complete_res.json']
+        with open('res.txt', 'r') as f:
+            message = f.read()
+        sendMail(subj,attach,message)
 # selectNN(args.nn,args.run,x,y,args.iterations,args.n_clusters,args.quiet,args.explicit)

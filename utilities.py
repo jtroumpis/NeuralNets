@@ -1,5 +1,5 @@
 import csv, math
-from sklearn.cluster import KMeans
+# from sklearn.cluster import KMeans
 from utilities import *
 # import matplotlib.pyplot as plt
 # import seaborn as sns; sns.set()  # for plot styling
@@ -11,9 +11,12 @@ def readFromFile(filename):
     y = []
     with open(filename, 'r') as f:
         for line in f:
-            line = list(map(float, line.split(',')))
-            x.append(line[:-1])
-            y.append(line[len(line)-1])
+            try:
+                line = list(map(float, line.split(',')))
+                x.append(line[:-1])
+                y.append(line[len(line)-1])
+            except ValueError:
+                pass
     return x,y
 
 def printToFile(filename,x,y):
@@ -94,13 +97,14 @@ def readCSV(filename = 'data_old.csv', aa=True, keep_this=None):
     total_sum_in = 0
     total_sum_out = 0
     with open(filename) as f:
-        reader = csv.DictReader(f, delimiter=';')
+        reader = csv.DictReader(f, delimiter=',')
 
         for row in reader:
             # print(row)
             x_sub_list = []
             y_sub_list = []
             for key, value in row.items():
+                print(key,value)
                 try:
                     value = int(value)
                 except ValueError:
