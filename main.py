@@ -223,9 +223,9 @@ if settings:
     args.iterations = settings['i']
 
 for data_file in file_list:
-    print(data_file)
+    # print(data_file)
     data_file.update(loadData(data_file))
-    print(data_file)
+    # print(data_file)
     for nn in nn_list:
         for c in c_list:
             selectNN(data_file['name'],nn,(data_file['x_train'],data_file['y_train'], data_file['x_test'], data_file['y_test']),args.run,args.iterations,c,args.quiet,args.explicit)

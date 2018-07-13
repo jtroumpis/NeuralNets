@@ -16,8 +16,9 @@ def runTestData(nn,x_test, y_test, pbest):
         error = feedForward(x_test,y_test,pbest.n_clusters,pbest.getA(),pbest.getB())
     return error
 
-def saveToFile(name,nn, n_clusters, error, testing=True):
-    d = {'name': name, 'nn': nn, 'c': n_clusters, 'error': error, 'testing': testing}
+def saveToFile(name,nn, n_clusters, train_error, testing_error, res_list):
+    d = {'name': name, 'nn': nn, 'c': n_clusters, 'train_error': train_error,
+         'testing_error': testing_error, 'iter_list': res_list}
     with open('complete_res.json', 'a+') as f:
         json.dump(d,f)
         f.write('\n')
@@ -26,6 +27,8 @@ def evolution(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=2
     x_train,y_train, x_test, y_test = data
     p_list = []
     gbest = 0
+
+    best_res_list={'train': [], 'test': []}
 
     if explicit: print("Creating particles...")
     #Initialise particles
@@ -48,6 +51,9 @@ def evolution(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=2
     if explicit: print("Starting the evolution")
     stop_forever = False
 
+    best_res_list['train'].append(p_list[gbest].pbest)
+    best_res_list['test'].append(runTestData(nn,x_test,y_test,p_list[gbest]))
+
     for i in range(iterations):
         try:
             if not quiet: print("Iteration",i)
@@ -68,6 +74,11 @@ def evolution(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=2
                     gbest = c
                     print("Iteration[%d] New gbest = %s" % (i,p_list[gbest].pbest))
                 c+=1
+
+            best_res_list['train'].append(p_list[gbest].pbest)
+            testing_error = runTestData(nn,x_test,y_test,p_list[gbest])
+            best_res_list['test'].append(testing_error)
+
             stop_forever = False
         except KeyboardInterrupt:
             print("interrupted! running test data now.")
@@ -82,13 +93,12 @@ def evolution(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=2
     if explicit: print("gbest = ", p_list[gbest].pbest)
 
     if explicit: print("Now using testing data set...")
-    saveToFile(name,nn,n_clusters,p_list[gbest].pbest,testing=False)
-    error = runTestData(nn,x_test,y_test,p_list[gbest])
-    saveToFile(name,nn,n_clusters,error,testing=True)
+
+    saveToFile(name,nn,n_clusters,p_list[gbest].pbest,testing_error,best_res_list)
+    # saveToFile(name,nn,n_clusters,testing_error,testing=True)
     # save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
-    if not quiet: print("RMSE=",error)
-    print("Finished %s (c=%d)" % (nn,n_clusters))
-    return error, p_list[gbest].pbest
+    if not quiet: print("%s: c=%d RMSE=%f" % (name,n_clusters,testing_error))
+    return testing_error, p_list[gbest].pbest
 
 def PSO(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quiet=False,explicit=False):
     x_train,y_train, x_test, y_test = data
@@ -96,6 +106,8 @@ def PSO(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quie
     inertia = random.uniform(0.5,1)
     p_list = []
     gbest = 0
+
+    best_res_list={'train': [], 'test': []}
 
     if explicit: print("Creating particles...")
     #Initialise particles
@@ -116,10 +128,11 @@ def PSO(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quie
         # try:
         if (p_list[i].getPBest()[0]) < p_list[gbest].getPBest()[0]:
             gbest = i
-                # print("New gbest = ", gbest)
-        # except TypeError:
-        #     gbest = i
-            # print("New gbest = ", gbest)
+
+
+    best_res_list['train'].append(p_list[gbest].getPBest()[0])
+    best_res_list['test'].append(runTestData(nn,x_test,y_test,p_list[gbest]))
+
     if explicit: print("Staring gbest = ", p_list[gbest].getPBest()[0])
     if explicit: print("Starting the swarming")
     stop_forever = False
@@ -138,6 +151,11 @@ def PSO(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quie
                     gbest = c
                     print("Iteration[%d] New gbest = %s" % (i,p_list[gbest].getPBest()[0]))
                 c+=1
+
+            testing_error = runTestData(nn,x_test,y_test,p_list[gbest])
+            best_res_list['train'].append(p_list[gbest].getPBest()[0])
+            best_res_list['test'].append(testing_error)
+
             stop_forever = False
         except KeyboardInterrupt:
             print("interrupted! running test data now.")
@@ -152,10 +170,8 @@ def PSO(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quie
     if explicit: print("gbest = ", p_list[gbest].getPBest()[0])
 
     if explicit: print("Now using testing data set...")
-    error = runTestData(nn,x_test,y_test,p_list[gbest])
-    saveToFile(name,nn,n_clusters,p_list[gbest].getPBest()[0],testing=False)
-    saveToFile(name,nn,n_clusters,error,testing=True)
+    saveToFile(name,nn,n_clusters,p_list[gbest].getPBest()[0],testing_error,best_res_list)
+    # saveToFile(name,nn,n_clusters,testing_error,testing=True)
     # save(p_list[gbest].getCenters(),p_list[gbest].getSigmas(),p_list[gbest].getW())
-    if not quiet: print("RMSE=",error)
-    print("Finished %s (c=%d)" % (nn,n_clusters))
-    return error, p_list[gbest].getPBest()[0]
+    if not quiet: print("%s: c=%d RMSE=%f" % (name,n_clusters,testing_error))
+    return testing_error, p_list[gbest].getPBest()[0]

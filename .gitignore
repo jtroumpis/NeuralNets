@@ -13,3 +13,5 @@ res*.txt
 datasets/
 
 input\.txt
+save.dat
+.idea/
