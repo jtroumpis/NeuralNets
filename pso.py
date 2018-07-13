@@ -32,7 +32,7 @@ def evolution(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=2
     for i in range(n_of_particles):
         # p_list.append(Full_Particle(x,y,n_clusters))
         if nn=='rbf':
-            if i == 0 and not quiet: print("Starting RBF evolution (c=%d) for %s" % (n_clusters, name))
+            if i == 0: print("Starting RBF evolution (c=%d) for %s" % (n_clusters, name))
             p_list.append(Pokemon(x_train,y_train,n_clusters))
         else:
             raise ValueError('No such NN type available.')
@@ -102,13 +102,13 @@ def PSO(name,data,iterations=500,n_clusters=10,nn='prbf', n_of_particles=20,quie
     for i in range(n_of_particles):
         # p_list.append(Full_Particle(x,y,n_clusters))
         if nn=='prbf':
-            if i == 0 and not quiet: print("Starting Polynomial RBF (c=%d) for %s" % (n_clusters,name))
+            if i == 0: print("Starting Polynomial RBF (c=%d) for %s" % (n_clusters,name))
             p_list.append(Particle(x_train,y_train,n_clusters,inertia))
         elif nn=='rbf':
-            if i == 0 and not quiet: print("Starting RBF swarm (c=%d) for %s" % (n_clusters,name))
+            if i == 0: print("Starting RBF swarm (c=%d) for %s" % (n_clusters,name))
             p_list.append(Full_Particle(x_train,y_train,n_clusters,inertia))
         elif nn=='ff':
-            if i == 0 and not quiet: print("Starting FF swarm (c=%d) for %s" % (n_clusters,name))
+            if i == 0: print("Starting FF swarm (c=%d) for %s" % (n_clusters,name))
             p_list.append(FFParticle(x_train,y_train,n_clusters,inertia))
         else:
             raise ValueError('No such NN type.')

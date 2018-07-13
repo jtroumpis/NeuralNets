@@ -129,8 +129,8 @@ class Full_Particle(Particle):
 
         self.position.extend(self.initCenters(n_clusters,x_min,x_max))
         self.vel.extend(self.initCenters(n_clusters,x_min,x_max))
-        self.position.extend(self.initSigmas(n_clusters,1000000,1000000000))
-        self.vel.extend(self.initSigmas(n_clusters,1000000,1000000000))
+        self.position.extend(self.initSigmas(n_clusters,min(x_min),max(x_max)))
+        self.vel.extend(self.initSigmas(n_clusters,min(x_min),max(x_max)))
         self.position.extend(self.initW(n_clusters))
         self.vel.extend(self.initW(n_clusters))
 
@@ -178,12 +178,18 @@ class Pokemon(Full_Particle):
         x_max = np.amax(x, axis=0)
 
         self.position.extend(self.initCenters(n_clusters,x_min,x_max))
-        self.position.extend(self.initSigmas(n_clusters,1000000,1000000000))
+        self.position.extend(self.initSigmas(n_clusters,0,max(x_max)/10))
         self.position.extend(self.initW(n_clusters))
 
         self.temp_pos = self.position
 
         self.pbest = particleNet(self.x,self.y,self.getCenters(),self.getSigmas(),self.getW())
+
+        # for c in range(n_clusters):
+        #     for p in range(self.p):
+        #         temp = random.uniform(x_min[p],x_max[p])
+        #         pos.append(temp)
+        # return pos
 
     def setPositionToBest(self):
         pass
@@ -217,17 +223,19 @@ class FFParticle(Particle):
         self.inertia = inertia
         self.p = len(x[0])
 
+        # print(x[0])
+
         x_min = np.amin(x, axis=0)
         x_max = np.amax(x, axis=0)
 
         #Initialise position
         # This is the As
         for j in range(n_clusters):
-            self.position.extend([random.uniform(-0.5, 0.5) for _ in range(self.p)])
-            self.vel.extend([random.uniform(-0.5, 0.5) for _ in range(self.p)])
+            self.position.extend([random.uniform(0, 1) for _ in range(self.p)])
+            self.vel.extend([random.uniform(0, 1) for _ in range(self.p)])
         # This is the Bs
-        self.position.extend([random.uniform(-0.5, 0.5) for _ in range(n_clusters)])
-        self.vel.extend([random.uniform(-0.5, 0.5) for _ in range(n_clusters)])
+        self.position.extend([random.uniform(0,1) for _ in range(n_clusters)])
+        self.vel.extend([random.uniform(0,1) for _ in range(n_clusters)])
 
         self.pbest = (feedForward(x,y,self.n_clusters,self.getA(),self.getB()),list(self.position))
 

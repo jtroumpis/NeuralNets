@@ -165,7 +165,7 @@ def multidistance(array,n_clusters,cluster_array,center_array):
 # Calculates the gaussian function for a vector
 def gaussianFunction(x, center, sigma):
     dist = calcDistance(x, center)
-#    print(dist,sigma)
+    # print(dist,sigma)
     try:
         fraction = math.pow(dist / sigma,2)
     except ZeroDivisionError:

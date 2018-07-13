@@ -29,6 +29,13 @@ def create_JSON_output(name,nn_type,n_clusters,train,test):
         json.dump(res_train, f)
         f.write('\n')
 
+def loadData(filename):
+    x_train, y_train = readFromFile(filename['train'])
+    x_test, y_test = readFromFile(filename['test'])
+
+    return {'x_train': np.asarray(x_train), 'x_test': np.asarray(x_test),
+            'y_train': np.asarray(y_train), 'y_test': np.asarray(y_test)}
+
 def selectNN(name,nn_type, data,run,iterations,n_clusters,quiet,expl):
     errors_test = []
     errors_train = []
@@ -135,7 +142,7 @@ if args.file_list:
             file_tile = file.split('/')[-1].strip()
             file_list.append({'name':file_tile, 'train': file.strip()+'_train.csv', 'test':file.strip()+'_test.csv'})
 
-    print(file_list)
+    # print(file_list)
 else:
     if not args.train_file:
         x, y = readCSV(args.filename,args.aa)
@@ -146,15 +153,18 @@ else:
     else:
         file_tile = args.train_file.split('.')[-2]
         file_list.append({'name':file_tile, 'train': args.train_file, 'test':args.test_file})
-for filename in file_list:
-    x_train, y_train = readFromFile(filename['train'])
-    x_test, y_test = readFromFile(filename['test'])
+
+
+
+# for filename in file_list:
+    # x_train, y_train = readFromFile(filename['train'])
+    # x_test, y_test = readFromFile(filename['test'])
     # x_train = np.asarray(x_train)
     # print(x_train)
-    filename['x_train'] = np.asarray(x_train)
-    filename['y_train'] = np.asarray(y_train)
-    filename['x_test'] = np.asarray(x_test)
-    filename['y_test'] = np.asarray(y_test)
+    # filename['x_train'] = np.asarray(x_train)
+    # filename['y_train'] = np.asarray(y_train)
+    # filename['x_test'] = np.asarray(x_test)
+    # filename['y_test'] = np.asarray(y_test)
 
         # print(x_train.shape,y_train.shape)
 
@@ -198,13 +208,13 @@ else:
 
 if args.all:
     nn_list = ['rbf','ff']
-    c_list = [3,4,5,6,7,8,9,10,11]
+    c_list = [2,4,6,8,10]
 
 
 if args.n_clusters>0:
     c_list = [args.n_clusters]
 else:
-    c_list = [2,4,6,8,10,12]
+    c_list = [2,4,6,8,10]
 
 if settings:
     nn_list = settings['nn_list']
@@ -213,10 +223,13 @@ if settings:
     args.iterations = settings['i']
 
 for data_file in file_list:
+    print(data_file)
+    data_file.update(loadData(data_file))
+    print(data_file)
     for nn in nn_list:
         for c in c_list:
-            selectNN(data_file['name'],nn,(filename['x_train'],filename['y_train'], filename['x_test'], filename['y_test']),args.run,args.iterations,c,args.quiet,args.explicit)
-        subj = '[NN] Finished %s of %s' % (nn, data_file['test'])
+            selectNN(data_file['name'],nn,(data_file['x_train'],data_file['y_train'], data_file['x_test'], data_file['y_test']),args.run,args.iterations,c,args.quiet,args.explicit)
+        subj = '[NN] Finished %s of %s' % (nn, data_file['name'])
         attach = ['/home/jtroumpis/Programming/neuralnet/res.txt',
         '/home/jtroumpis/Programming/neuralnet/complete_res.json']
         with open('res.txt', 'r') as f:

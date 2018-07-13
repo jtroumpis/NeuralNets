@@ -1,0 +1,11 @@
+{"c_list": [6], "nn_list": ["ff"], "r": 1, "i": 10}
+abalone, True
+carbon_to_use, True
+dee, True
+enegy_building_heat, True
+fishes_campostoma, True
+fishes_cyrinella, True
+forestFires, True
+Ground_temp, False
+Fluor_Fm, False
+enegy_building_cool, False
